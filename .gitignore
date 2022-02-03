@@ -1,0 +1,19 @@
+*.swp
+package-lock.json
+__pycache__
+.pytest_cache
+backend/.env
+.venv
+.idea
+*.egg-info
+*.sqlite3
+.env
+.env.stage
+.env.prod
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out
+
+# log files
+*.log
