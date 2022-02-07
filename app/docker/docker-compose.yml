@@ -1,4 +1,4 @@
-version: '3'
+version: '3.5'
 
 services:
   db:
@@ -17,10 +17,10 @@ services:
 
   app:
     build: &app
-      context: ../..
-      dockerfile: ./docker/local/app/Dockerfile
+      context: ../
+      dockerfile: ./docker/app/Dockerfile
+      target: dev
     restart: always
-    command: /start-dev-server.sh
     depends_on:
       - db
     environment: &app-env
@@ -31,7 +31,7 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
     volumes: &code
-      - ../..:/code
+      - ../:/code
     ports:
       - 8000:8000
 
