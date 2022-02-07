@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   db:
-    image: postgres:11
+    image: postgres:13
     restart: always
     ports:
       - ${DB_PORT}:${DB_PORT}
@@ -30,15 +30,6 @@ services:
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
-      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - AWS_STORAGE_BUCKET_NAME=${AWS_STORAGE_BUCKET_NAME}
-      - CLOUDFRONT_URL=${CLOUDFRONT_URL}
-      - AWS_REGION_NAME=${AWS_REGION_NAME}
-      - EMAIL_SENDER_ADDRESS=${EMAIL_SENDER_ADDRESS}
-      - FRONTEND_PASSWORD_RESET_URL=${FRONTEND_PASSWORD_RESET_URL}
-      - FRONTEND_PROVIDERS_LOGIN_URL=${FRONTEND_PROVIDERS_LOGIN_URL}
     volumes: &code
       - ../..:/code
     ports:
