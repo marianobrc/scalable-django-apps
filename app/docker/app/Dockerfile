@@ -28,19 +28,22 @@ COPY ./requirements/base.txt /code/requirements/
 RUN pip install --no-cache-dir -r ./requirements/base.txt
 # Copy entrypoint script which waits for the db to be ready
 COPY ./docker/app/entrypoint.sh /entrypoint.sh
+# Switch to the root user temporary, to grant execution permissions.
 USER root
-RUN chmod +x /entrypoint.sh # Grant execution permissions
+RUN chmod +x /entrypoint.sh
 USER apps-user
+# This script will run before every command executed in the container
 ENTRYPOINT ["/entrypoint.sh"]
 
 
 # Define an image for local development. Inherits common packages from the base stage.
 FROM base as dev
-# Copy the scripts that serves the django app
+# Copy the scripts that starts the development application server (runserver)
 COPY ./docker/app/start-dev-server.sh /start-dev-server.sh
 USER root
-RUN chmod +x /start-dev-server.sh # Grant execution permissions
+RUN chmod +x /start-dev-server.sh
 USER apps-user
+# The development server starts by default when the container starts
 CMD ["/start-dev-server.sh"]
 
 
@@ -49,12 +52,12 @@ FROM base as prod
 # Install extra packages required in production
 COPY ./requirements/prod.txt /code/requirements/
 RUN pip install --no-cache-dir -r ./requirements/prod.txt
-# Copy the script that serves the django app
+# Copy the script that starts the production application server (gunicorn)
 COPY ./docker/app/start-prod-server.sh /start-prod-server.sh
 USER root
-RUN chmod +x /start-prod-server.sh # Grant execution permissions
+RUN chmod +x /start-prod-server.sh
 USER apps-user
 # Copy the source code of our django app
 COPY . /code/
-# Default command starts the web server
+# The production server starts by default when the container starts
 CMD ["/start-prod-server.sh"]
