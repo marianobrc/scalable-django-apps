@@ -16,21 +16,21 @@ services:
       - postgres_data:/var/lib/postgresql/data/
 
   app:
-    build: &app
+    build:
       context: ../
       dockerfile: ./docker/app/Dockerfile
       target: dev
     restart: always
     depends_on:
       - db
-    environment: &app-env
+    environment:
       - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
-    volumes: &code
+    volumes:
       - ../:/code
     ports:
       - 8000:8000
