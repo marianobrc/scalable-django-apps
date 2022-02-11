@@ -31,7 +31,7 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
     volumes:
-      - ../:/code
+      - ../:/home/web/code
     ports:
       - 8000:8000
 
