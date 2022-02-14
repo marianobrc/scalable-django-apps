@@ -8,13 +8,18 @@ from aws_utils import aws_secrets
 DEBUG = False
 # Set to your Domain here
 ALLOWED_HOSTS = [
-    "production.domain.com",
+    "app.stage.domain.com",
 ]
 # The ALB uses the IP while calling the health check endpoint
 if os.environ.get("AWS_EXECUTION_ENV"):
     ALLOWED_HOSTS.append(gethostbyname(gethostname()))
 
 print("Loading env vars..")
+# AWS Settings
+AWS_ACCOUNT_ID = os.getenv("AWS_ACCOUNT_ID")
+AWS_REGION_NAME = os.getenv("AWS_REGION_NAME", "us-east-1")
+AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
 DB_AWS_SECRET_NAME = os.environ.get("DB_AWS_SECRET_NAME")
 DJANGO_SECRET_AWS_SECRET_NAME = os.environ.get("DJANGO_SECRET_AWS_SECRET_NAME")
 SECRET_KEY = aws_secrets.get_secret(
@@ -25,8 +30,6 @@ SECRET_KEY = aws_secrets.get_secret(
 )
 
 print("Loading db secrets..")
-# Database
-# https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 db_secrets = json.loads(
     aws_secrets.get_secret(
         secret_name=DB_AWS_SECRET_NAME,
@@ -35,6 +38,8 @@ db_secrets = json.loads(
         aws_secret_access_key=AWS_SECRET_ACCESS_KEY
     )
 )
+# Database settings
+# https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
