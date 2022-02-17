@@ -1,11 +1,9 @@
 # Base off the official python image
-# Define a common stage to dev and prod images called base
+# Define a common stage for dev and prod images called base
 FROM python:3.10 as base
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
-# Add the path where python packages are installed, to the path
-#ENV PATH="/home/web/.local/bin/:${PATH}"
 # Create a user to avoid running containers as root in production
 RUN addgroup --system web \
     && adduser --system --ingroup web web
@@ -42,7 +40,7 @@ FROM base as dev
 # Copy the scripts that starts the development application server (runserver)
 COPY ./docker/app/start-dev-server.sh /start-dev-server.sh
 USER root
-RUN chmod +x /start-dev-server.sh  # Permisions to run the dev server
+RUN chmod +x /start-dev-server.sh
 USER web
 # The development server starts by default when the container starts
 CMD ["/start-dev-server.sh"]
