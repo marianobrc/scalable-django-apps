@@ -22,14 +22,12 @@ USER web
 WORKDIR /home/web/code/
 # Copy the python depencencies list for pip
 COPY --chown=web:web ./requirements/base.txt requirements/base.txt
-# Install python packages at system level
-USER root
-RUN pip install --no-cache-dir -r requirements/base.txt
-USER web
-# Copy entrypoint script which waits for the db to be ready
-COPY --chown=web:web ./docker/app/entrypoint.sh /usr/local/bin/entrypoint.sh
 # Switch to the root user temporary, to grant execution permissions.
 USER root
+# Install python packages at system level
+RUN pip install --no-cache-dir -r requirements/base.txt
+# Copy entrypoint script which waits for the db to be ready
+COPY --chown=web:web ./docker/app/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 USER web
 # This script will run before every command executed in the container
@@ -50,13 +48,11 @@ CMD ["start-dev-server.sh"]
 # Define an image for production. Inherits common packages from the base stage.
 FROM base as prod
 # Install extra packages required in production
-COPY --chown=web:web ./requirements/prod.txt requirements/prod.txt
 USER root
+COPY --chown=web:web ./requirements/prod.txt requirements/prod.txt
 RUN pip install --no-cache-dir -r requirements/prod.txt
-USER web
 # Copy the script that starts the production application server (gunicorn)
 COPY --chown=web:web ./docker/app/start-prod-server.sh /usr/local/bin/start-prod-server.sh
-USER root
 RUN chmod +x /usr/local/bin/start-prod-server.sh
 USER web
 # Copy the source code of our django app to the working directoy
