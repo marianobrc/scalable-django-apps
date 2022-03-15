@@ -20,7 +20,7 @@ class NetworkStack(Stack):
             enable_dns_hostnames=True,
             enable_dns_support=True
         )
-        # Add VPC endpoints for ECR, S3 and CloudWatch
+        # Add VPC endpoints to keep the traffic inside AWS
         self.s3_private_link = ec2.GatewayVpcEndpoint(
             self,
             "S3GWEndpoint",
