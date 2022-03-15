@@ -6,32 +6,30 @@ from aws_cdk import (
 from constructs import Construct
 
 
-class NetworkingStack(Stack):
+class NetworkStack(Stack):
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
-        app_name = kwargs.pop("app_name", "quickpay").lower().strip()
-        deploy_env = kwargs.pop("deploy_env", "PROD").upper()
         super().__init__(scope, construct_id, **kwargs)
 
         # Our network in the cloud
         self.vpc = ec2.Vpc(
             self,
-            f"{app_name}Vpc{deploy_env}",
+            "VPC",
             max_azs=2,  # default is all AZs in region
-            nat_gateways=1,  # One Nat GW is required for third-party integrations like Sentry
+            nat_gateways=0,  # No Nat GWs are required as we will add VPC endpoints
             enable_dns_hostnames=True,
             enable_dns_support=True
         )
-        # Add VPC endpoints for ECR, S3 and CloudWatch to avoid using NAT GWs
+        # Add VPC endpoints for ECR, S3 and CloudWatch
         self.s3_private_link = ec2.GatewayVpcEndpoint(
             self,
-            f"{app_name}S3GWEndpoint{deploy_env}",
+            "S3GWEndpoint",
             vpc=self.vpc,
             service=ec2.GatewayVpcEndpointAwsService.S3
         )
         self.ecr_api_private_link = ec2.InterfaceVpcEndpoint(
             self,
-            f"{app_name}ECRapiEndpoint{deploy_env}",
+            "ECRapiEndpoint",
             vpc=self.vpc,
             service=ec2.InterfaceVpcEndpointAwsService.ECR,
             open=True,
@@ -39,7 +37,7 @@ class NetworkingStack(Stack):
         )
         self.ecr_dkr_private_link = ec2.InterfaceVpcEndpoint(
             self,
-            f"{app_name}ECRdkrEndpoint{deploy_env}",
+            f"ECRdkrEndpoint",
             vpc=self.vpc,
             service=ec2.InterfaceVpcEndpointAwsService.ECR_DOCKER,
             open=True,
@@ -47,7 +45,7 @@ class NetworkingStack(Stack):
         )
         self.cloudwatch_private_link = ec2.InterfaceVpcEndpoint(
             self,
-            f"{app_name}CloudWatchEndpoint{deploy_env}",
+            "CloudWatchEndpoint",
             vpc=self.vpc,
             service=ec2.InterfaceVpcEndpointAwsService.CLOUDWATCH_LOGS,
             open=True,
@@ -55,7 +53,7 @@ class NetworkingStack(Stack):
         )
         self.secrets_manager_private_link = ec2.InterfaceVpcEndpoint(
             self,
-            f"{app_name}SecretsManagerEndpoint{deploy_env}",
+            f"SecretsManagerEndpoint",
             vpc=self.vpc,
             service=ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
             open=True,
@@ -63,7 +61,7 @@ class NetworkingStack(Stack):
         )
         self.sqs_private_link = ec2.InterfaceVpcEndpoint(
             self,
-            f"{app_name}SQSEndpoint{deploy_env}",
+            f"SQSEndpoint",
             vpc=self.vpc,
             service=ec2.InterfaceVpcEndpointAwsService.SQS,
             open=True,
