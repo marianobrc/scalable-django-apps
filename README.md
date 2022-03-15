@@ -1,3 +1,5 @@
+# scalable-django-apps
+An example of scalable django apps in AWS with Docker and CDK.
 
 # Welcome to your CDK Python project!
 
@@ -56,3 +58,4 @@ command.
  * `cdk docs`        open CDK documentation
 
 Enjoy!
+=======
