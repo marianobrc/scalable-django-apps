@@ -37,7 +37,7 @@ class NetworkStack(Stack):
         )
         self.ecr_dkr_private_link = ec2.InterfaceVpcEndpoint(
             self,
-            f"ECRdkrEndpoint",
+            "ECRdkrEndpoint",
             vpc=self.vpc,
             service=ec2.InterfaceVpcEndpointAwsService.ECR_DOCKER,
             open=True,
@@ -53,7 +53,7 @@ class NetworkStack(Stack):
         )
         self.secrets_manager_private_link = ec2.InterfaceVpcEndpoint(
             self,
-            f"SecretsManagerEndpoint",
+            "SecretsManagerEndpoint",
             vpc=self.vpc,
             service=ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
             open=True,
@@ -61,7 +61,7 @@ class NetworkStack(Stack):
         )
         self.sqs_private_link = ec2.InterfaceVpcEndpoint(
             self,
-            f"SQSEndpoint",
+            "SQSEndpoint",
             vpc=self.vpc,
             service=ec2.InterfaceVpcEndpointAwsService.SQS,
             open=True,
