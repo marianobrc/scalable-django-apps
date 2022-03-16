@@ -13,7 +13,7 @@ class StaticFilesStack(Stack):
             self,
             scope: Construct,
             construct_id: str,
-            bucket_name: str,
+            bucket_name: str = None,
             **kwargs
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -22,7 +22,7 @@ class StaticFilesStack(Stack):
         # Create a private bucket
         self.s3_bucket = s3.Bucket(
             self, f"Bucket",
-            bucket_name=bucket_name,  # Bucket name must be globally unique
+            bucket_name=bucket_name,  # Bucket name must be globally unique. If not set it's assigned by Cloudformation
             block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
             removal_policy=RemovalPolicy.DESTROY,  # Delete objects on bucket removal
         )

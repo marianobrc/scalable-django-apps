@@ -1,4 +1,3 @@
-import typing
 from aws_cdk import (
     Duration,
     Stack,
@@ -14,7 +13,7 @@ class DatabaseStack(Stack):
             self,
             scope: Construct,
             construct_id: str,
-            vpc: typing.Optional[ec2.Vpc],
+            vpc: ec2.Vpc,
             auto_pause_minutes: int = 30,
             backup_retention_days: int = 1,
             **kwargs
