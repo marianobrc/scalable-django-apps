@@ -9,9 +9,15 @@ from constructs import Construct
 
 class StaticFilesStack(Stack):
 
-    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
-        bucket_name = kwargs.pop("bucket_name")
+    def __init__(
+            self,
+            scope: Construct,
+            construct_id: str,
+            bucket_name: str,
+            **kwargs
+    ) -> None:
         super().__init__(scope, construct_id, **kwargs)
+        self.bucket_name = bucket_name
 
         # Create a private bucket
         self.s3_bucket = s3.Bucket(
