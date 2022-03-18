@@ -2,7 +2,7 @@ version: '3.5'
 
 services:
   db:
-    image: postgres:13
+    image: postgres:10
     restart: always
     ports:
       - ${DB_PORT}:${DB_PORT}
@@ -16,24 +16,50 @@ services:
       - postgres_data:/var/lib/postgresql/data/
 
   app:
-    build:
+    build: &app-image
       context: ../
       dockerfile: ./docker/app/Dockerfile
       target: dev
     restart: always
     depends_on:
       - db
-    environment:
+    environment: &app-env
       - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
-    volumes:
+      - AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}
+      - AWS_REGION_NAME=${AWS_REGION_NAME}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_TASK_ALWAYS_EAGER=${CELERY_TASK_ALWAYS_EAGER}
+    volumes: &code
       - ../:/home/web/code
     ports:
       - 8000:8000
+
+  broker:
+    # Original sqs image has some issues: https://github.com/roribio/alpine-sqs/pull/37
+    image: rciorba/alpine-sqs
+    ports:
+      - 9324:9324
+      - 9325:9325
+    volumes:
+      - ./sqs-config/elasticmq.conf:/opt/config/elasticmq.conf
+
+  worker-default:
+    build: *app-image
+    image: worker-default
+    restart: always
+    command: start-celery-worker.sh default
+    depends_on:
+      - db
+      - broker
+    environment: *app-env
+    volumes: *code
 
 volumes:
   postgres_data:

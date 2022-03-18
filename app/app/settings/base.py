@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 import os
 from pathlib import Path
+from distutils.util import strtobool
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -155,3 +156,29 @@ LOGGING = {
             'level': 'INFO',
     },
 }
+
+# AWS Settings
+AWS_ACCOUNT_ID = os.getenv("AWS_ACCOUNT_ID")
+AWS_REGION_NAME = os.getenv("AWS_REGION_NAME", "us-east-1")
+AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
+
+# Celery settings
+# Check celery good practices: https://denibertovic.com/posts/celery-best-practices/
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
+# Pass only json serializable arguments to tasks
+CELERY_TASK_SERIALIZER = "json"
+# We ignore the celery task "result" as we don't need it.
+# We keep track of status and/or results in our own DB models as necessary.
+CELERY_TASK_IGNORE_RESULT = True
+# Queues and routes for celery tasks
+CELERY_TASK_DEFAULT_QUEUE = "default"
+CELERY_BROKER_TRANSPORT = "sqs"
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    "region": AWS_REGION_NAME,
+    "visibility_timeout": 3600,
+    "polling_interval": 5,
+    "queue_name_prefix": "dev"
+}
+# This setting makes the tasks to run synchronously. Useful for local debugging and CI tests.
+CELERY_TASK_ALWAYS_EAGER = strtobool(os.getenv("CELERY_TASK_ALWAYS_EAGER", "False"))

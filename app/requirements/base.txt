@@ -1,2 +1,4 @@
 Django==4.0.2
 psycopg2==2.9
+celery[sqs]==5.2.3
+boto3==1.21.21

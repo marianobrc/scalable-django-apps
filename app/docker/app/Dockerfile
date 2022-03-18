@@ -29,6 +29,9 @@ RUN pip install --no-cache-dir -r requirements/base.txt
 # Copy entrypoint script which waits for the db to be ready
 COPY --chown=web:web ./docker/app/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
+# Copy the scripts that starts the default worker
+COPY --chown=web:web ./docker/app/start-celery-worker.sh /usr/local/bin/start-celery-worker.sh
+RUN chmod +x /usr/local/bin/start-celery-worker.sh
 USER web
 # This script will run before every command executed in the container
 ENTRYPOINT ["entrypoint.sh"]
@@ -54,6 +57,8 @@ RUN pip install --no-cache-dir -r requirements/prod.txt
 # Copy the script that starts the production application server (gunicorn)
 COPY --chown=web:web ./docker/app/start-prod-server.sh /usr/local/bin/start-prod-server.sh
 RUN chmod +x /usr/local/bin/start-prod-server.sh
+# Override SQS endpoint settings as a workaround to make celery to work with VPC endpoints
+COPY --chown=web:web ./docker/aws_endpoints.json /home/web/botocore/endpoints.json
 USER web
 # Copy the source code of our django app to the working directoy
 COPY --chown=web:web . ./
