@@ -4,6 +4,7 @@ __pycache__
 .pytest_cache
 backend/.env
 .venv
+.venv*
 .idea
 *.egg-info
 *.sqlite3
@@ -14,6 +15,7 @@ backend/.env
 # CDK asset staging directory
 .cdk.staging
 cdk.out
+cdk.context.json
 
 # log files
 *.log
