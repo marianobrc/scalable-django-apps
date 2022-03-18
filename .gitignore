@@ -17,5 +17,9 @@ backend/.env
 cdk.out
 cdk.context.json
 
+# Local Secrets and Parameters
+.secrets.json
+.parameters.json
+
 # log files
 *.log
