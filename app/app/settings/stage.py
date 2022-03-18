@@ -1,9 +1,6 @@
 """ Staging Settings """
-import json
 from socket import gethostname, gethostbyname
 from .base import *
-from aws_utils import aws_secrets
-
 
 DEBUG = False
 # Set to your Domain here
@@ -14,40 +11,12 @@ ALLOWED_HOSTS = [
 if os.environ.get("AWS_EXECUTION_ENV"):
     ALLOWED_HOSTS.append(gethostbyname(gethostname()))
 
-print("Loading env vars and secrets..")
+print("Loading env vars..")
 # AWS Settings
 AWS_ACCOUNT_ID = os.getenv("AWS_ACCOUNT_ID")
 AWS_REGION_NAME = os.getenv("AWS_REGION_NAME")
 AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
-AWS_SM_DB_SECRET_NAME = os.environ.get("AWS_SM_DB_SECRET_NAME")
-AWS_SM_DJANGO_SECRET_NAME = os.environ.get("AWS_SM_DJANGO_SECRET_NAME")
-SECRET_KEY = aws_secrets.get_secret(
-    secret_name=AWS_SM_DJANGO_SECRET_NAME,
-    region_name=AWS_REGION_NAME,
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY
-)
-db_secrets = json.loads(
-    aws_secrets.get_secret(
-        secret_name=AWS_SM_DB_SECRET_NAME,
-        region_name=AWS_REGION_NAME,
-        aws_access_key_id=AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=AWS_SECRET_ACCESS_KEY
-    )
-)
-# Database settings
-# https://docs.djangoproject.com/en/4.0/ref/settings/#databases
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": db_secrets["NAME"],
-        "USER": db_secrets["USER"],
-        "PASSWORD": db_secrets["PASSWORD"],
-        "HOST": db_secrets["HOST"],
-        "PORT": db_secrets["PORT"],
-    }
-}
 
 # Static files and Media are stored in S3 and served with CloudFront
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
