@@ -8,7 +8,7 @@ from aws_utils import aws_secrets
 DEBUG = False
 # Set to your Domain here
 ALLOWED_HOSTS = [
-    "app.stage.domain.com",
+    "stg.scalabledjango.com",
 ]
 # The ALB uses the IP while calling the health check endpoint
 if os.environ.get("AWS_EXECUTION_ENV"):
