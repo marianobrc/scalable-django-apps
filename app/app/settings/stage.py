@@ -14,26 +14,24 @@ ALLOWED_HOSTS = [
 if os.environ.get("AWS_EXECUTION_ENV"):
     ALLOWED_HOSTS.append(gethostbyname(gethostname()))
 
-print("Loading env vars..")
+print("Loading env vars and secrets..")
 # AWS Settings
 AWS_ACCOUNT_ID = os.getenv("AWS_ACCOUNT_ID")
-AWS_REGION_NAME = os.getenv("AWS_REGION_NAME", "us-east-1")
+AWS_REGION_NAME = os.getenv("AWS_REGION_NAME")
 AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
-DB_AWS_SECRET_NAME = os.environ.get("DB_AWS_SECRET_NAME")
-DJANGO_SECRET_AWS_SECRET_NAME = os.environ.get("DJANGO_SECRET_AWS_SECRET_NAME")
+AWS_SM_DB_SECRET_NAME = os.environ.get("AWS_SM_DB_SECRET_NAME")
+AWS_SM_DJANGO_SECRET_NAME = os.environ.get("AWS_SM_DJANGO_SECRET_NAME")
 SECRET_KEY = aws_secrets.get_secret(
-    secret_name=DJANGO_SECRET_AWS_SECRET_NAME,
-    region_name="us-east-1",
+    secret_name=AWS_SM_DJANGO_SECRET_NAME,
+    region_name=AWS_REGION_NAME,
     aws_access_key_id=AWS_ACCESS_KEY_ID,
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY
 )
-
-print("Loading db secrets..")
 db_secrets = json.loads(
     aws_secrets.get_secret(
-        secret_name=DB_AWS_SECRET_NAME,
-        region_name="us-east-1",
+        secret_name=AWS_SM_DB_SECRET_NAME,
+        region_name=AWS_REGION_NAME,
         aws_access_key_id=AWS_ACCESS_KEY_ID,
         aws_secret_access_key=AWS_SECRET_ACCESS_KEY
     )
@@ -54,8 +52,8 @@ DATABASES = {
 # Static files and Media are stored in S3 and served with CloudFront
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 STATICFILES_STORAGE = 'storages.backends.s3boto3.S3StaticStorage'
-AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
-AWS_S3_CUSTOM_DOMAIN = os.getenv("CLOUDFRONT_URL")
+AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STATIC_FILES_BUCKET_NAME")
+AWS_S3_CUSTOM_DOMAIN = os.getenv("AWS_STATIC_FILES_CLOUDFRONT_URL")
 print(f"Static files served from:{AWS_S3_CUSTOM_DOMAIN}")
 
 # Redirects all non-HTTPS requests to HTTPS.
