@@ -19,12 +19,8 @@ class BackendWorkersStack(Stack):
             vpc: ec2.Vpc,
             ecs_cluster: ecs.Cluster,
             queue: sqs.Queue,
-            django_settings_module: str,
-            sm_django_secret_name: str,
-            sm_db_secret_name: str,  # Name of a secret in Secrets Manager containing database credentials
-            sm_aws_api_key_id_secret_name: str,
-            sm_aws_api_key_secret_secret_name: str,
-            django_debug: bool = False,
+            env_vars: dict,
+            secrets: dict,
             task_cpu: int = 256,
             task_memory_mib: int = 1024,
             task_min_scaling_capacity: int = 0,
@@ -35,12 +31,8 @@ class BackendWorkersStack(Stack):
         self.vpc = vpc
         self.ecs_cluster = ecs_cluster
         self.queue = queue
-        self.django_settings_module = django_settings_module.lower().strip()
-        self.sm_django_secret_name = sm_django_secret_name
-        self.sm_db_secret_name = sm_db_secret_name
-        self.sm_aws_api_key_id_secret_name = sm_aws_api_key_id_secret_name
-        self.sm_aws_api_key_secret_secret_name = sm_aws_api_key_secret_secret_name
-        self.django_debug = django_debug
+        self.env_vars = env_vars
+        self.secrets = secrets
         self.task_cpu = task_cpu
         self.task_memory_mib = task_memory_mib
         self.task_min_scaling_capacity = task_min_scaling_capacity
@@ -61,17 +53,6 @@ class BackendWorkersStack(Stack):
 
         # Prepare environment variables
         self.container_name = f"celery_worker"
-        self.env_vars = {
-            "DJANGO_SETTINGS_MODULE": self.django_settings_module,
-            "DJANGO_DEBUG": str(self.django_debug),
-            "AWS_SM_DB_SECRET_NAME": self.sm_db_secret_name,
-            # Workaround to use VPC endpoints with SQS in Django
-            # https://github.com/boto/boto3/issues/1900#issuecomment-873597264
-            "AWS_DATA_PATH": "/home/web/botocore/",
-            "AWS_ACCOUNT_ID": os.getenv('CDK_DEFAULT_ACCOUNT'),
-            "AWS_SM_DJANGO_SECRET_NAME": sm_django_secret_name
-        }
-
         self.workers_fargate_service = ecs_patterns.QueueProcessingFargateService(
             self,
             f"CeleryWorkers",
@@ -91,18 +72,5 @@ class BackendWorkersStack(Stack):
             container_name=self.container_name,
             command=["start-celery-worker.sh", queue.queue_name],
             environment=self.env_vars,
-            secrets={
-                "AWS_ACCESS_KEY_ID": ecs.Secret.from_secrets_manager(
-                    secretsmanager.Secret.from_secret_name_v2(
-                        self, f"AWSAccessKeyIDSecret",
-                        secret_name=self.sm_aws_api_key_id_secret_name
-                    )
-                ),
-                "AWS_SECRET_ACCESS_KEY": ecs.Secret.from_secrets_manager(
-                    secretsmanager.Secret.from_secret_name_v2(
-                        self, f"AWSAccessKeySecretSecret",
-                        secret_name=self.sm_aws_api_key_secret_secret_name,
-                    )
-                ),
-            }
+            secrets=self.secrets
         )

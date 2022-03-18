@@ -14,12 +14,14 @@ class DatabaseStack(Stack):
             scope: Construct,
             construct_id: str,
             vpc: ec2.Vpc,
+            database_name: str,
             auto_pause_minutes: int = 30,
             backup_retention_days: int = 1,
             **kwargs
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
         self.vpc = vpc
+        self.database_name = database_name
         self.auto_pause_minutes = auto_pause_minutes
         self.backup_retention_days = backup_retention_days
 
@@ -30,6 +32,7 @@ class DatabaseStack(Stack):
             engine=rds.DatabaseClusterEngine.AURORA_POSTGRESQL,
             vpc=self.vpc,
             vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_ISOLATED),
+            default_database_name=self.database_name,
             backup_retention=Duration.days(self.backup_retention_days),  # 1 day retention is free
             cluster_identifier=f"dbcluster{construct_id.lower()}",
             deletion_protection=True,

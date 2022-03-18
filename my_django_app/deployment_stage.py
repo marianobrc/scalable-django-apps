@@ -3,6 +3,8 @@ from constructs import Construct
 from aws_cdk import (
     Stage,
     Environment,
+    aws_ecs as ecs,
+    aws_secretsmanager as secretsmanager,
 )
 from my_django_app.network_stack import NetworkStack
 from my_django_app.database_stack import DatabaseStack
@@ -39,6 +41,8 @@ class MyDjangoAppPipelineStage(Stage):
                 region=os.getenv('CDK_DEFAULT_REGION')
             ),
             vpc=network.vpc,
+            database_name="app_db",
+            auto_pause_minutes=5
         )
         # Serve static files for the Backoffice (django-admin)
         static_files = StaticFilesStack(
@@ -57,6 +61,59 @@ class MyDjangoAppPipelineStage(Stage):
                 region=os.getenv('CDK_DEFAULT_REGION')
             ),
         )
+        app_env_vars = {
+            "DJANGO_SETTINGS_MODULE": self.django_settings_module,
+            "DJANGO_DEBUG": str(self.django_debug),
+            # Workaround to use VPC endpoints with SQS in Django
+            # https://github.com/boto/boto3/issues/1900#issuecomment-873597264
+            "AWS_DATA_PATH": "/home/web/botocore/",
+            "AWS_ACCOUNT_ID": os.getenv('CDK_DEFAULT_ACCOUNT'),
+            "AWS_STATIC_FILES_BUCKET_NAME": self.static_files_bucket.bucket_name,
+            "AWS_STATIC_FILES_CLOUDFRONT_URL": self.static_files_cloudfront_dist.distribution_domain_name,
+            "CELERY_BROKER_URL": queues.default_queue.queue_url,
+            "CELERY_TASK_ALWAYS_EAGER": "False"
+        }
+        database_secrets = database.aurora_serverless_db.secret.secret_name
+        app_secrets = {
+            "DJANGO_SECRET_KEY": ecs.Secret.from_secrets_manager(
+                secretsmanager.Secret.from_secret_name_v2(
+                    self, f"AWSDjangoKeySecret",
+                    secret_name="/mydjangoapp/djangosecretkey/prod"
+                )
+            ),
+            "DB_HOST": ecs.Secret.from_secrets_manager(
+                database_secrets,
+                field="host"
+            ),
+            "DB_PORT": ecs.Secret.from_secrets_manager(
+                database_secrets,
+                field="port"
+            ),
+            "DB_NAME": ecs.Secret.from_secrets_manager(
+                database_secrets,
+                field="dbInstanceIdentifier"
+            ),
+            "DB_USER": ecs.Secret.from_secrets_manager(
+                database_secrets,
+                field="username"
+            ),
+            "DB_PASSWORD": ecs.Secret.from_secrets_manager(
+                database_secrets,
+                field="password"
+            ),
+            "AWS_ACCESS_KEY_ID": ecs.Secret.from_secrets_manager(
+                secretsmanager.Secret.from_secret_name_v2(
+                    self, f"AWSAccessKeyIDSecret",
+                    secret_name="/mydjangoapp/awsapikeyid"
+                )
+            ),
+            "AWS_SECRET_ACCESS_KEY": ecs.Secret.from_secrets_manager(
+                secretsmanager.Secret.from_secret_name_v2(
+                    self, f"AWSAccessKeySecretSecret",
+                    secret_name="/mydjangoapp/awsapikeysecret",
+                )
+            ),
+        }
         django_app = MyDjangoAppStack(
             self,
             "MyDjangoAppService",
@@ -69,12 +126,8 @@ class MyDjangoAppPipelineStage(Stage):
             static_files_bucket=static_files.s3_bucket,
             static_files_cloudfront_dist=static_files.cloudfront_distro,
             certificate_arn=os.getenv('CDK_DOMAIN_CERTIFICATE_ARN'),
-            django_settings_module="app.settings.prod",
-            sm_django_secret_name="/mydjangoapp/djangosecretkey/prod",
-            sm_db_secret_name="/mydjangoapp/dbsecrets/prod",
-            sm_aws_api_key_id_secret_name="/mydjangoapp/awsapikeyid",
-            sm_aws_api_key_secret_secret_name="/mydjangoapp/awsapikeysecret",
-            django_debug=False,
+            env_vars=app_env_vars,
+            secrets=app_secrets,
             task_cpu=256,
             task_memory_mib=512,
             task_desired_count=2,
@@ -93,12 +146,8 @@ class MyDjangoAppPipelineStage(Stage):
             vpc=network.vpc,
             ecs_cluster=django_app.ecs_cluster,
             queue=queues.default_queue,
-            django_settings_module="app.settings.prod",
-            sm_django_secret_name="/mydjangoapp/djangosecretkey/prod",
-            sm_db_secret_name="/mydjangoapp/dbsecrets/prod",
-            sm_aws_api_key_id_secret_name="/mydjangoapp/awsapikeyid",
-            sm_aws_api_key_secret_secret_name="/mydjangoapp/awsapikeysecret",
-            django_debug=False,
+            env_vars=app_env_vars,
+            secrets=app_secrets,
             task_cpu=256,
             task_memory_mib=512,
             task_min_scaling_capacity=1,

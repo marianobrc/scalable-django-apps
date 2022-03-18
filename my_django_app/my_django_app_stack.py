@@ -25,12 +25,8 @@ class MyDjangoAppStack(Stack):
             static_files_bucket: s3.Bucket,
             static_files_cloudfront_dist: cloudfront.CloudFrontWebDistribution,
             certificate_arn: str,
-            django_settings_module: str,
-            sm_django_secret_name: str,
-            sm_db_secret_name: str,  # Name of a secret in Secrets Manager containing database credentials
-            sm_aws_api_key_id_secret_name: str,
-            sm_aws_api_key_secret_secret_name: str,
-            django_debug: bool = False,
+            env_vars: dict,
+            secrets: dict,
             task_cpu: int = 256,
             task_memory_mib: int = 1024,
             task_desired_count: int = 2,
@@ -41,15 +37,12 @@ class MyDjangoAppStack(Stack):
 
         super().__init__(scope, construct_id, **kwargs)
         self.vpc = vpc
+        self.queue = queue
         self.static_files_bucket = static_files_bucket
         self.static_files_cloudfront_dist = static_files_cloudfront_dist
         self.certificate_arn = certificate_arn
-        self.django_settings_module = django_settings_module.lower().strip()
-        self.sm_django_secret_name = sm_django_secret_name
-        self.sm_db_secret_name = sm_db_secret_name
-        self.sm_aws_api_key_id_secret_name = sm_aws_api_key_id_secret_name
-        self.sm_aws_api_key_secret_secret_name = sm_aws_api_key_secret_secret_name
-        self.django_debug = django_debug
+        self.env_vars = env_vars
+        self.secrets = secrets
         self.task_cpu = task_cpu
         self.task_memory_mib = task_memory_mib
         self.task_desired_count = task_desired_count
@@ -60,20 +53,7 @@ class MyDjangoAppStack(Stack):
 
         # Prepare environment variables
         self.container_name = f"django_app"
-        self.env_vars = {
-            "DJANGO_SETTINGS_MODULE": self.django_settings_module,
-            "DJANGO_DEBUG": str(self.django_debug),
-            "AWS_SM_DJANGO_SECRET_NAME": sm_django_secret_name,
-            "AWS_SM_DB_SECRET_NAME": self.sm_db_secret_name,
-            # Workaround to use VPC endpoints with SQS in Django
-            # https://github.com/boto/boto3/issues/1900#issuecomment-873597264
-            "AWS_DATA_PATH": "/home/web/botocore/",
-            "AWS_ACCOUNT_ID": os.getenv('CDK_DEFAULT_ACCOUNT'),
-            "AWS_STATIC_FILES_BUCKET_NAME": self.static_files_bucket.bucket_name,
-            "AWS_STATIC_FILES_CLOUDFRONT_URL": self.static_files_cloudfront_dist.distribution_domain_name,
-            "CELERY_BROKER_URL": queue.queue_url,
-            "CELERY_TASK_ALWAYS_EAGER": "False"
-        }
+
         # Create the load balancer, ECS service and fargate task for teh Django App
         self.alb_fargate_service = ecs_patterns.ApplicationLoadBalancedFargateService(
             self,
@@ -97,20 +77,7 @@ class MyDjangoAppStack(Stack):
                 container_name=self.container_name,
                 container_port=8000,
                 environment=self.env_vars,
-                secrets={
-                    "AWS_ACCESS_KEY_ID": ecs.Secret.from_secrets_manager(
-                        secretsmanager.Secret.from_secret_name_v2(
-                            self, f"AWSAccessKeyIDSecret",
-                            secret_name=self.sm_aws_api_key_id_secret_name
-                        )
-                    ),
-                    "AWS_SECRET_ACCESS_KEY": ecs.Secret.from_secrets_manager(
-                        secretsmanager.Secret.from_secret_name_v2(
-                            self, f"AWSAccessKeySecretSecret",
-                            secret_name=self.sm_aws_api_key_secret_secret_name,
-                        )
-                    ),
-                }
+                secrets=self.secrets
             ),
             public_load_balancer=True
         )
