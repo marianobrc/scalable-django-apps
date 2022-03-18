@@ -2,6 +2,7 @@ import os
 from aws_cdk import (
     Stack,
     aws_ec2 as ec2,
+    aws_sqs as sqs,
     aws_s3 as s3,
     aws_cloudfront as cloudfront,
     aws_ecs as ecs,
@@ -20,6 +21,7 @@ class MyDjangoAppStack(Stack):
             scope: Construct,
             construct_id: str,
             vpc: ec2.Vpc,
+            queue: sqs.Queue,
             static_files_bucket: s3.Bucket,
             static_files_cloudfront_dist: cloudfront.CloudFrontWebDistribution,
             certificate_arn: str,
@@ -61,18 +63,21 @@ class MyDjangoAppStack(Stack):
         self.env_vars = {
             "DJANGO_SETTINGS_MODULE": self.django_settings_module,
             "DJANGO_DEBUG": str(self.django_debug),
-            "AWS_SSM_DB_SECRET_NAME": self.sm_db_secret_name,
+            "AWS_SM_DJANGO_SECRET_NAME": sm_django_secret_name,
+            "AWS_SM_DB_SECRET_NAME": self.sm_db_secret_name,
             # Workaround to use VPC endpoints with SQS in Django
             # https://github.com/boto/boto3/issues/1900#issuecomment-873597264
             "AWS_DATA_PATH": "/home/web/botocore/",
             "AWS_ACCOUNT_ID": os.getenv('CDK_DEFAULT_ACCOUNT'),
             "AWS_STATIC_FILES_BUCKET_NAME": self.static_files_bucket.bucket_name,
             "AWS_STATIC_FILES_CLOUDFRONT_URL": self.static_files_cloudfront_dist.distribution_domain_name,
-            "AWS_SSM_DJANGO_SECRET_NAME": sm_django_secret_name
+            "CELERY_BROKER_URL": queue.queue_url,
+            "CELERY_TASK_ALWAYS_EAGER": "False"
         }
         # Create the load balancer, ECS service and fargate task for teh Django App
         self.alb_fargate_service = ecs_patterns.ApplicationLoadBalancedFargateService(
-            self, f"MyDjangoApp",
+            self,
+            f"MyDjangoApp",
             protocol=elbv2.ApplicationProtocol.HTTPS,
             certificate=acm.Certificate.from_certificate_arn(
                 self, f"MyDjangoAppDomainCertificate",
