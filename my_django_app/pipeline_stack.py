@@ -3,6 +3,7 @@ from constructs import Construct
 from aws_cdk import (
     Stack,
     pipelines as pipelines,
+    aws_ssm as ssm,
 )
 
 
@@ -13,13 +14,16 @@ class MyDjangoAppPipelineStack(Stack):
             id: str,
             repository: str,
             branch: str,
-            gh_connection_arn: str,
+            ssm_gh_connection_param: str,
             **kwargs
     ) -> None:
         super().__init__(scope, id, **kwargs)
         self.repository = repository
         self.branch = branch
-        self.gh_connection_arn = gh_connection_arn
+        self.ssm_gh_connection_param = ssm_gh_connection_param
+        self.gh_connection_arn = ssm.StringParameter.value_for_string_parameter(
+            self, ssm_gh_connection_param
+        )
         self.pipeline = pipelines.CodePipeline(
             self,
             "Pipeline",

@@ -5,6 +5,7 @@ from aws_cdk import (
     Environment,
     aws_ecs as ecs,
     aws_secretsmanager as secretsmanager,
+    aws_ssm as ssm,
     aws_certificatemanager as acm
 )
 from my_django_app.network_stack import NetworkStack
@@ -115,7 +116,9 @@ class MyDjangoAppPipelineStage(Stage):
                 )
             ),
         }
-        certificate_arn = os.getenv('CDK_DOMAIN_CERTIFICATE_ARN')
+        certificate_arn = ssm.StringParameter.value_for_string_parameter(
+            self, "/mydjangoapp/certificatearn"
+        )
         domain_certificate = acm.Certificate.from_certificate_arn(
             self, f"MyDjangoAppDomainCertificate",
             certificate_arn=certificate_arn
