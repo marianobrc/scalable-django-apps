@@ -5,6 +5,7 @@ from aws_cdk import (
     pipelines as pipelines,
     aws_ssm as ssm,
 )
+from .deployment_stage import MyDjangoAppPipelineStage
 
 
 class MyDjangoAppPipelineStack(Stack):
@@ -24,7 +25,7 @@ class MyDjangoAppPipelineStack(Stack):
         self.gh_connection_arn = ssm.StringParameter.value_for_string_parameter(
             self, ssm_gh_connection_param
         )
-        self.pipeline = pipelines.CodePipeline(
+        pipeline = pipelines.CodePipeline(
             self,
             "Pipeline",
             synth=pipelines.ShellStep(
@@ -41,3 +42,10 @@ class MyDjangoAppPipelineStack(Stack):
                 ]
             ),
         )
+        # Deploy to a staging environment
+        deploy = MyDjangoAppPipelineStage(
+            self, "MyDjangoAppProduction",
+            django_settings_module="app.settings.prod",
+            django_debug=True
+        )
+        pipeline.add_stage(deploy)
