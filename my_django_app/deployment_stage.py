@@ -5,6 +5,7 @@ from aws_cdk import (
     Environment,
     aws_ecs as ecs,
     aws_secretsmanager as secretsmanager,
+    aws_certificatemanager as acm
 )
 from my_django_app.network_stack import NetworkStack
 from my_django_app.database_stack import DatabaseStack
@@ -114,6 +115,11 @@ class MyDjangoAppPipelineStage(Stage):
                 )
             ),
         }
+        certificate_arn = os.getenv('CDK_DOMAIN_CERTIFICATE_ARN')
+        domain_certificate = acm.Certificate.from_certificate_arn(
+            self, f"MyDjangoAppDomainCertificate",
+            certificate_arn=certificate_arn
+        )
         django_app = MyDjangoAppStack(
             self,
             "MyDjangoAppService",
@@ -123,9 +129,7 @@ class MyDjangoAppPipelineStage(Stage):
             ),
             vpc=network.vpc,
             queue=queues.default_queue,
-            static_files_bucket=static_files.s3_bucket,
-            static_files_cloudfront_dist=static_files.cloudfront_distro,
-            certificate_arn=os.getenv('CDK_DOMAIN_CERTIFICATE_ARN'),
+            domain_certificate=domain_certificate,
             env_vars=app_env_vars,
             secrets=app_secrets,
             task_cpu=256,

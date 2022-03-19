@@ -1,13 +1,9 @@
-import os
 from aws_cdk import (
     Stack,
     aws_ec2 as ec2,
     aws_sqs as sqs,
-    aws_s3 as s3,
-    aws_cloudfront as cloudfront,
     aws_ecs as ecs,
     aws_ecs_patterns as ecs_patterns,
-    aws_secretsmanager as secretsmanager,
     aws_certificatemanager as acm,
     aws_elasticloadbalancingv2 as elbv2
 )
@@ -22,9 +18,7 @@ class MyDjangoAppStack(Stack):
             construct_id: str,
             vpc: ec2.Vpc,
             queue: sqs.Queue,
-            static_files_bucket: s3.Bucket,
-            static_files_cloudfront_dist: cloudfront.CloudFrontWebDistribution,
-            certificate_arn: str,
+            domain_certificate: acm.ICertificate,
             env_vars: dict,
             secrets: dict,
             task_cpu: int = 256,
@@ -38,9 +32,7 @@ class MyDjangoAppStack(Stack):
         super().__init__(scope, construct_id, **kwargs)
         self.vpc = vpc
         self.queue = queue
-        self.static_files_bucket = static_files_bucket
-        self.static_files_cloudfront_dist = static_files_cloudfront_dist
-        self.certificate_arn = certificate_arn
+        self.domain_certificate = domain_certificate
         self.env_vars = env_vars
         self.secrets = secrets
         self.task_cpu = task_cpu
@@ -59,10 +51,7 @@ class MyDjangoAppStack(Stack):
             self,
             f"MyDjangoApp",
             protocol=elbv2.ApplicationProtocol.HTTPS,
-            certificate=acm.Certificate.from_certificate_arn(
-                self, f"MyDjangoAppDomainCertificate",
-                certificate_arn=certificate_arn
-            ),
+            certificate=self.domain_certificate,
             platform_version=ecs.FargatePlatformVersion.VERSION1_4,
             cluster=self.ecs_cluster,  # Required
             cpu=self.task_cpu,  # Default is 256
