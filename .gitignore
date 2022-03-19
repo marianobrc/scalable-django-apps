@@ -15,7 +15,6 @@ backend/.env
 # CDK asset staging directory
 .cdk.staging
 cdk.out
-cdk.context.json
 
 # Local Secrets and Parameters
 .secrets.json
