@@ -15,7 +15,19 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.views.generic import View
+from django.http import JsonResponse
+
+
+# status endpoint for health checks
+class StatusView(View):
+    def get(self, request, *args, **kwargs):
+        return JsonResponse({"status": "OK"}, status=200)
+
 
 urlpatterns = [
+    # A status endpoint for health-checks
+    path("status/", view=StatusView.as_view(), name="status"),
+    # The django back-office interface
     path('admin/', admin.site.urls),
 ]
