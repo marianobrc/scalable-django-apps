@@ -28,6 +28,7 @@ class StaticFilesStack(Stack):
             bucket_name=bucket_name,  # Bucket name must be globally unique. If not set it's assigned by Cloudformation
             block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
             removal_policy=RemovalPolicy.DESTROY,  # Delete objects on bucket removal
+            auto_delete_objects=True
         )
         # Add an OriginAccessIdentity to access the bucket
         self.oai = cloudfront.OriginAccessIdentity(
