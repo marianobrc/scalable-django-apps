@@ -33,7 +33,8 @@ class MyDjangoAppPipelineStack(Stack):
                 input=pipelines.CodePipelineSource.connection(
                     self.repository,
                     self.branch,
-                    connection_arn=self.gh_connection_arn
+                    connection_arn=self.gh_connection_arn,
+                    trigger_on_push=True
                 ),
                 commands=[
                     "npm install -g aws-cdk",  # Installs the cdk cli on Codebuild
