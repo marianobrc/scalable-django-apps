@@ -37,7 +37,7 @@ class VariablesStack(Stack):
             ),
             "DB_NAME": ecs.Secret.from_secrets_manager(
                 database_secrets,
-                field="dbInstanceIdentifier"
+                field="dbname"
             ),
             "DB_USER": ecs.Secret.from_secrets_manager(
                 database_secrets,
