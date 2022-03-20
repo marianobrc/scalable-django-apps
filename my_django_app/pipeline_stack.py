@@ -48,6 +48,7 @@ class MyDjangoAppPipelineStack(Stack):
             self, "MyDjangoAppStaging",
             django_settings_module="app.settings.stage",
             django_debug=True,
+            cors_allowed_origins=["https://stage.scalabledjango.com"]
         )
         pipeline.add_stage(deploy_staging)
         # Deploy to production after manual approval
@@ -55,6 +56,10 @@ class MyDjangoAppPipelineStack(Stack):
             self, "MyDjangoAppProduction",
             django_settings_module="app.settings.prod",
             django_debug=False,
+            cors_allowed_origins=[
+                "https://scalabledjango.com",
+                "https://www.scalabledjango.com"
+            ]
         )
         pipeline.add_stage(
             deploy_production,

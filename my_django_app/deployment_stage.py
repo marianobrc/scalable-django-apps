@@ -1,4 +1,5 @@
 import os
+import typing
 from constructs import Construct
 from aws_cdk import (
     Stage,
@@ -21,12 +22,15 @@ class MyDjangoAppPipelineStage(Stage):
             id: str,
             django_settings_module: str,
             django_debug: bool,
+            cors_allowed_origins: typing.Sequence[str] = None,
             **kwargs
     ):
 
         super().__init__(scope, id, **kwargs)
         self.django_settings_module = django_settings_module
         self.django_debug = django_debug
+        self.cors_allowed_origins = cors_allowed_origins
+
         network = NetworkStack(
             self,
             "Network",
@@ -54,6 +58,7 @@ class MyDjangoAppPipelineStage(Stage):
                 account=os.getenv('CDK_DEFAULT_ACCOUNT'),
                 region=os.getenv('CDK_DEFAULT_REGION')
             ),
+            cors_allowed_origins=self.cors_allowed_origins
         )
         queues = QueuesStack(
             self,

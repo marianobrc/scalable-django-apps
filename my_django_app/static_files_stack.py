@@ -1,8 +1,10 @@
+import typing
 from aws_cdk import (
     Stack,
     RemovalPolicy,
     aws_s3 as s3,
-    aws_cloudfront as cloudfront
+    aws_cloudfront as cloudfront,
+    aws_cloudfront_origins as origins,
 )
 from constructs import Construct
 
@@ -14,11 +16,12 @@ class StaticFilesStack(Stack):
             scope: Construct,
             construct_id: str,
             bucket_name: str = None,
+            cors_allowed_origins: typing.Sequence[str] = None,
             **kwargs
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
         self.bucket_name = bucket_name
-
+        self.cors_allowed_origins = cors_allowed_origins
         # Create a private bucket
         self.s3_bucket = s3.Bucket(
             self, f"Bucket",
@@ -26,24 +29,45 @@ class StaticFilesStack(Stack):
             block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
             removal_policy=RemovalPolicy.DESTROY,  # Delete objects on bucket removal
         )
-
-        # Add a CloudFront distribution with a OriginAccessIdentity
+        # Add an OriginAccessIdentity to access the bucket
         self.oai = cloudfront.OriginAccessIdentity(
             self, f"BucketOAI",
             comment="OAI to access backend static files."
         )
         self.s3_bucket.grant_read(self.oai)
-        self.cloudfront_distro = cloudfront.CloudFrontWebDistribution(
-            self, f"CloudFrontDistro",
-            origin_configs=[
-                cloudfront.SourceConfiguration(  # Set the S3 bucket as the source
-                    s3_origin_source=cloudfront.S3OriginConfig(
-                        s3_bucket_source=self.s3_bucket,
-                        origin_access_identity=self.oai
-                    ),
-                    behaviors=[
-                        cloudfront.Behavior(is_default_behavior=True)
+        # Prepare CORS settings
+        if self.cors_allowed_origins:
+            response_headers_policy = cloudfront.ResponseHeadersPolicy(
+                self, "ResponseHeadersPolicy",
+                response_headers_policy_name="MyPolicy",
+                comment="A default policy",
+                cors_behavior=cloudfront.ResponseHeadersCorsBehavior(
+                    access_control_allow_credentials=True,
+                    access_control_allow_headers=[
+                        "accept",
+                        "accept-encoding",
+                        "authorization",
+                        "content-type",
+                        "dnt",
+                        "origin",
+                        "user-agent",
+                        "x-csrftoken"
                     ],
+                    access_control_allow_methods=["GET", "HEAD", "OPTIONS"],
+                    access_control_allow_origins=cors_allowed_origins,
+                    origin_override=True
                 )
-            ]
+            )
+        else:
+            response_headers_policy = cloudfront.ResponseHeadersPolicy.CORS_ALLOW_ALL_ORIGINS
+        # Create the cloudfront distribution
+        self.cloudfront_distro = cloudfront.Distribution(
+            self, "CFDistribution",
+            default_behavior=cloudfront.BehaviorOptions(
+                origin=origins.S3Origin(
+                    self.s3_bucket,
+                    origin_access_identity=self.oai
+                ),
+                response_headers_policy=response_headers_policy
+            )
         )
