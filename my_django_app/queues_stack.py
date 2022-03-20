@@ -11,7 +11,6 @@ class QueuesStack(Stack):
             self,
             scope: Construct,
             construct_id: str,
-            queue_name: str = "DefaultQueue",
             **kwargs
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -19,7 +18,6 @@ class QueuesStack(Stack):
 
         self.default_queue = sqs.Queue(
             self,
-            "SQSQueue",
-            queue_name=queue_name
+            "SQSQueue"
         )
 
