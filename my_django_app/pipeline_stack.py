@@ -44,9 +44,21 @@ class MyDjangoAppPipelineStack(Stack):
             ),
         )
         # Deploy to a staging environment
-        deploy = MyDjangoAppPipelineStage(
+        deploy_staging = MyDjangoAppPipelineStage(
+            self, "MyDjangoAppStaging",
+            django_settings_module="app.settings.stage",
+            django_debug=True,
+        )
+        pipeline.add_stage(deploy_staging)
+        # Deploy to production after manual approval
+        deploy_production = MyDjangoAppPipelineStage(
             self, "MyDjangoAppProduction",
             django_settings_module="app.settings.prod",
-            django_debug=True
+            django_debug=False,
         )
-        pipeline.add_stage(deploy)
+        pipeline.add_stage(
+            deploy_production,
+            pre=[
+                pipelines.ManualApprovalStep("PromoteToProduction")
+            ]
+        )
