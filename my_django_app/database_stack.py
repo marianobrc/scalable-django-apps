@@ -34,7 +34,6 @@ class DatabaseStack(Stack):
             vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_ISOLATED),
             default_database_name=self.database_name,
             backup_retention=Duration.days(self.backup_retention_days),  # 1 day retention is free
-            cluster_identifier=f"dbcluster{construct_id.lower()}",
             deletion_protection=True,
             enable_data_api=True,  # Allow running queries in AWS console (free)
             parameter_group=rds.ParameterGroup.from_parameter_group_name(  # Specify the postgresql version
