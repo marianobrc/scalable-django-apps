@@ -4,6 +4,7 @@ from aws_cdk import (
     Stack,
     pipelines as pipelines,
     aws_ssm as ssm,
+    aws_rds as rds,
 )
 from .deployment_stage import MyDjangoAppPipelineStage
 
@@ -49,7 +50,10 @@ class MyDjangoAppPipelineStack(Stack):
             django_settings_module="app.settings.stage",
             django_debug=True,
             domain_name="scalabledjango.com",
-            subdomain="stage"
+            subdomain="stage",
+            db_min_capacity=rds.AuroraCapacityUnit.ACU_2,
+            db_max_capacity=rds.AuroraCapacityUnit.ACU_2,
+            db_auto_pause_minutes=5
         )
         pipeline.add_stage(deploy_staging)
         # Deploy to production after manual approval

@@ -15,6 +15,8 @@ class DatabaseStack(Stack):
             construct_id: str,
             vpc: ec2.Vpc,
             database_name: str,
+            min_capacity: rds.AuroraCapacityUnit = rds.AuroraCapacityUnit.ACU_2,
+            max_capacity: rds.AuroraCapacityUnit = rds.AuroraCapacityUnit.ACU_4,
             auto_pause_minutes: int = 30,
             backup_retention_days: int = 1,
             **kwargs
@@ -22,6 +24,8 @@ class DatabaseStack(Stack):
         super().__init__(scope, construct_id, **kwargs)
         self.vpc = vpc
         self.database_name = database_name
+        self.min_capacity = min_capacity
+        self.max_capacity = max_capacity
         self.auto_pause_minutes = auto_pause_minutes
         self.backup_retention_days = backup_retention_days
 
@@ -43,8 +47,8 @@ class DatabaseStack(Stack):
             ),
             scaling=rds.ServerlessScalingOptions(
                 auto_pause=Duration.minutes(self.auto_pause_minutes),  # Shutdown after minutes of inactivity to save costs
-                min_capacity=rds.AuroraCapacityUnit.ACU_2,  # The minimal capacity for postgresql allowed here is 2
-                max_capacity=rds.AuroraCapacityUnit.ACU_4   # Limit scaling to limit costs
+                min_capacity=self.min_capacity,
+                max_capacity=self.max_capacity
             ),
         )
         # Allow ingress traffic from ECS tasks
