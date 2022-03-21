@@ -12,6 +12,7 @@ from my_django_app.static_files_stack import StaticFilesStack
 from my_django_app.queues_stack import QueuesStack
 from my_django_app.backend_workers_stack import BackendWorkersStack
 from my_django_app.variables_stack import VariablesStack
+from my_django_app.dns_route_to_alb_stack import DnsRouteToAlbStack
 
 
 class MyDjangoAppPipelineStage(Stage):
@@ -22,14 +23,16 @@ class MyDjangoAppPipelineStage(Stage):
             id: str,
             django_settings_module: str,
             django_debug: bool,
-            cors_allowed_origins: typing.Sequence[str] = None,
+            domain_name: str,
+            subdomain: str = None,
             **kwargs
     ):
 
         super().__init__(scope, id, **kwargs)
         self.django_settings_module = django_settings_module
         self.django_debug = django_debug
-        self.cors_allowed_origins = cors_allowed_origins
+        self.domain_name = domain_name
+        self.subdomain = subdomain
 
         network = NetworkStack(
             self,
@@ -58,7 +61,9 @@ class MyDjangoAppPipelineStage(Stage):
                 account=os.getenv('CDK_DEFAULT_ACCOUNT'),
                 region=os.getenv('CDK_DEFAULT_REGION')
             ),
-            cors_allowed_origins=self.cors_allowed_origins
+            cors_allowed_origins=[
+                f"https://{self.subdomain}.{self.domain_name}" if self.subdomain else f"https://{self.domain_name}"
+            ]
         )
         queues = QueuesStack(
             self,
@@ -129,4 +134,16 @@ class MyDjangoAppPipelineStage(Stage):
                 {"upper": 0, "change": 0},  # 0 msgs = 1 workers
                 {"lower": 10, "change": +1},  # 10 msgs = 2 workers
             ]
+        )
+        # Route requests made in the domain to the ALB
+        dns = DnsRouteToAlbStack(
+            self,
+            "DnsToAlb",
+            env=Environment(
+                account=os.getenv('CDK_DEFAULT_ACCOUNT'),
+                region=os.getenv('CDK_DEFAULT_REGION')
+            ),
+            domain_name=self.domain_name,
+            subdomain=self.subdomain,
+            alb=django_app.alb_fargate_service.load_balancer,
         )
