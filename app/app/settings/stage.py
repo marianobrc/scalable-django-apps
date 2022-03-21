@@ -2,7 +2,7 @@
 from socket import gethostname, gethostbyname
 from .base import *
 
-DEBUG = False
+DEBUG = strtobool(os.getenv("DJANGO_DEBUG", "False"))
 # Set to your Domain here
 ALLOWED_HOSTS = [
     "stage.scalabledjango.com",
