@@ -29,6 +29,11 @@ class MyDjangoAppPipelineStage(Stage):
             db_min_capacity: rds.AuroraCapacityUnit = rds.AuroraCapacityUnit.ACU_2,
             db_max_capacity: rds.AuroraCapacityUnit = rds.AuroraCapacityUnit.ACU_4,
             db_auto_pause_minutes: int = 0,
+            app_task_min_scaling_capacity: int = 2,
+            app_task_max_scaling_capacity: int = 4,
+            worker_task_min_scaling_capacity: int = 1,
+            worker_task_max_scaling_capacity: int = 4,
+            worker_scaling_steps: list = None,
             **kwargs
     ):
 
@@ -40,6 +45,11 @@ class MyDjangoAppPipelineStage(Stage):
         self.db_min_capacity = db_min_capacity
         self.db_max_capacity = db_max_capacity
         self.db_auto_pause_minutes = db_auto_pause_minutes
+        self.app_task_min_scaling_capacity = app_task_min_scaling_capacity
+        self.app_task_max_scaling_capacity = app_task_max_scaling_capacity
+        self.worker_task_min_scaling_capacity = worker_task_min_scaling_capacity
+        self.worker_task_max_scaling_capacity = worker_task_max_scaling_capacity
+        self.worker_scaling_steps = worker_scaling_steps
 
         network = NetworkStack(
             self,
@@ -117,9 +127,9 @@ class MyDjangoAppPipelineStage(Stage):
             secrets=variables.app_secrets,
             task_cpu=256,
             task_memory_mib=512,
-            task_desired_count=2,
-            task_min_scaling_capacity=2,  # 2 minimum to get High Availability
-            task_max_scaling_capacity=5,  # Limit the scaling to save costs
+            task_desired_count=self.app_task_min_scaling_capacity,
+            task_min_scaling_capacity=self.app_task_min_scaling_capacity,
+            task_max_scaling_capacity=self.app_task_max_scaling_capacity,
         )
         # Grant permissions to the app to put messages in hte queue
         queues.default_queue.grant_send_messages(django_app.alb_fargate_service.service.task_definition.task_role)
@@ -137,12 +147,9 @@ class MyDjangoAppPipelineStage(Stage):
             secrets=variables.app_secrets,
             task_cpu=256,
             task_memory_mib=512,
-            task_min_scaling_capacity=1,
-            task_max_scaling_capacity=2,  # Limit the scaling to save costs
-            scaling_steps=[
-                {"upper": 0, "change": 0},  # 0 msgs = 1 workers
-                {"lower": 10, "change": +1},  # 10 msgs = 2 workers
-            ]
+            task_min_scaling_capacity=self.worker_task_min_scaling_capacity,
+            task_max_scaling_capacity=self.worker_task_max_scaling_capacity,
+            scaling_steps=self.worker_scaling_steps
         )
         # Route requests made in the domain to the ALB
         dns = DnsRouteToAlbStack(

@@ -25,7 +25,7 @@ class BackendWorkersStack(Stack):
             task_memory_mib: int = 1024,
             task_min_scaling_capacity: int = 0,
             task_max_scaling_capacity: int = 4,
-            scaling_steps=None,
+            scaling_steps: list = None,
             **kwargs
     ) -> None:
         self.vpc = vpc

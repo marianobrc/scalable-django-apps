@@ -51,9 +51,18 @@ class MyDjangoAppPipelineStack(Stack):
             django_debug=True,
             domain_name="scalabledjango.com",
             subdomain="stage",
+            # Limit scaling in staging to reduce costs
             db_min_capacity=rds.AuroraCapacityUnit.ACU_2,
             db_max_capacity=rds.AuroraCapacityUnit.ACU_2,
-            db_auto_pause_minutes=5
+            db_auto_pause_minutes=5,
+            app_task_min_scaling_capacity=2,
+            app_task_max_scaling_capacity=2,
+            worker_task_min_scaling_capacity=1,
+            worker_task_max_scaling_capacity=1,
+            worker_scaling_steps=[
+                {"upper": 0, "change": 0},  # 0 msgs = 1 workers
+                {"lower": 10, "change": +1},  # 10 msgs = 2 workers
+            ]
         )
         pipeline.add_stage(deploy_staging)
         # Deploy to production after manual approval
