@@ -1,6 +1,5 @@
 from aws_cdk import (
     Stack,
-    CfnOutput,
     aws_ec2 as ec2,
     aws_sqs as sqs,
     aws_ecs as ecs,
@@ -57,6 +56,7 @@ class MyDjangoAppStack(Stack):
             redirect_http=True,
             platform_version=ecs.FargatePlatformVersion.VERSION1_4,
             cluster=self.ecs_cluster,  # Required
+            #task_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_ISOLATED),
             cpu=self.task_cpu,  # Default is 256
             memory_limit_mib=self.task_memory_mib,  # Default is 512
             desired_count=self.task_desired_count,  # Default is 1
@@ -88,29 +88,47 @@ class MyDjangoAppStack(Stack):
             f"CpuScaling",
             target_utilization_percent=75,
         )
-        # Export useful values
-        ecr_image_name = self.alb_fargate_service.task_definition.find_container(self.container_name).image_name
-        ecr_repo_name = ecr_image_name.split(":")[0]
-        CfnOutput(
-            self,
-            f"{scope.stage_name}-EcsClusterName",
-            value=self.ecs_cluster.cluster_name
-        )
-        CfnOutput(
-            self,
-            f"{scope.stage_name}-EcrImageName",
-            value=ecr_image_name
-        )
-        # Save them in SSM
+        # Save useful values in in SSM
         self.ecs_cluster_name_param = ssm.StringParameter(
             self,
             "EcsClusterNameParam",
             parameter_name=f"/{scope.stage_name}/EcsClusterNameParam",
             string_value=self.ecs_cluster.cluster_name
         )
-        self.ecr_repo_name_param = ssm.StringParameter(
+        self.task_def_arn_param = ssm.StringParameter(
             self,
-            "EcrRepoNameParam",
-            parameter_name=f"/{scope.stage_name}/EcrRepoNameParam",
-            string_value=ecr_repo_name
+            "TaskDefArnParam",
+            parameter_name=f"/{scope.stage_name}/TaskDefArnParam",
+            string_value=self.alb_fargate_service.task_definition.task_definition_arn
         )
+        self.task_def_family_param = ssm.StringParameter(
+            self,
+            "TaskDefFamilyParam",
+            parameter_name=f"/{scope.stage_name}/TaskDefFamilyParam",
+            string_value=self.alb_fargate_service.task_definition.family
+        )
+        self.exec_role_arn_param = ssm.StringParameter(
+            self,
+            "TaskExecRoleArnParam",
+            parameter_name=f"/{scope.stage_name}/TaskExecRoleArnParam",
+            string_value=self.alb_fargate_service.task_definition.execution_role.role_arn
+        )
+        self.task_role_arn_param = ssm.StringParameter(
+            self,
+            "TaskRoleArnParam",
+            parameter_name=f"/{scope.stage_name}/TaskRoleArnParam",
+            string_value=self.alb_fargate_service.task_definition.task_role.role_arn
+        )
+        # self.task_subnets = ssm.StringListParameter(
+        #     self,
+        #     "TaskSubnetsParam",
+        #     parameter_name=f"/{scope.stage_name}/TaskSubnetsParam",
+        #     string_list_value=",".join(
+        #         [
+        #             str(s)
+        #             for s in vpc.select_subnets(subnet_type=ec2.SubnetType.PRIVATE_ISOLATED)
+        #         ]
+        #     )
+        # )
+
+
