@@ -102,15 +102,15 @@ class MyDjangoAppStack(Stack):
             value=ecr_image_name
         )
         # Save them in SSM
-        ssm.StringParameter(
+        self.ecs_cluster_name_param = ssm.StringParameter(
             self,
             "EcsClusterNameParam",
             parameter_name=f"/{scope.stage_name}/EcsClusterName",
             string_value=self.ecs_cluster.cluster_name
         )
-        ssm.StringParameter(
+        self.ecr_repo_name_param = ssm.StringParameter(
             self,
-            "EcrImageNameParam",
+            "EcrRepoNameParam",
             parameter_name=f"/{scope.stage_name}/EcrRepoName",
             string_value=ecr_repo_name
         )
