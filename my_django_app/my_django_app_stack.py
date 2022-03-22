@@ -105,12 +105,12 @@ class MyDjangoAppStack(Stack):
         self.ecs_cluster_name_param = ssm.StringParameter(
             self,
             "EcsClusterNameParam",
-            parameter_name=f"/{scope.stage_name}/EcsClusterName",
+            parameter_name=f"/{scope.stage_name}/EcsClusterNameParam",
             string_value=self.ecs_cluster.cluster_name
         )
         self.ecr_repo_name_param = ssm.StringParameter(
             self,
             "EcrRepoNameParam",
-            parameter_name=f"/{scope.stage_name}/EcrRepoName",
+            parameter_name=f"/{scope.stage_name}/EcrRepoNameParam",
             string_value=ecr_repo_name
         )

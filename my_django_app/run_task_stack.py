@@ -36,11 +36,11 @@ class RunTaskStack(Stack):
         )
         ecr_repo_name = ssm.StringParameter.value_from_lookup(
             self,
-            parameter_name=f"/{stage_name}/EcrRepoName"
+            parameter_name=f"/{stage_name}/EcrRepoNameParam"
         )
         ecs_cluster_name = ssm.StringParameter.value_from_lookup(
             self,
-            parameter_name=f"/{stage_name}/EcsClusterName"
+            parameter_name=f"/{stage_name}/EcsClusterNameParam"
         )
         self.ecs_cluster = ecs.Cluster.from_cluster_attributes(
             self, "ECSCluster",
