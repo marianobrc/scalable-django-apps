@@ -7,5 +7,51 @@
   "hosted-zone:account=675985711616:domainName=scalabledjango.com:region=us-east-2": {
     "Id": "/hostedzone/Z01910862PXLK96TD3E9L",
     "Name": "scalabledjango.com."
+  },
+  "ssm:account=675985711616:parameterName=/MyDjangoAppStaging/VpcId:region=us-east-2": "vpc-0aae285e9c76ff924",
+  "ssm:account=675985711616:parameterName=/MyDjangoAppStaging/EcrImageName:region=us-east-2": "675985711616.dkr.ecr.us-east-2.amazonaws.com/cdk-hnb659fds-container-assets-675985711616-us-east-2:1c0d1aa8b4c9189b990567c5302a30d6a5e8a2acd12e1d455e8d0486c7928b1a",
+  "ssm:account=675985711616:parameterName=/MyDjangoAppStaging/EcsClusterName:region=us-east-2": "MyDjangoAppStaging-AppService-ECSCluster7D463CD4-YHpaUPjqPNd0",
+  "vpc-provider:account=675985711616:filter.vpc-id=vpc-0aae285e9c76ff924:region=us-east-2:returnAsymmetricSubnets=true": {
+    "vpcId": "vpc-0aae285e9c76ff924",
+    "vpcCidrBlock": "10.0.0.0/16",
+    "availabilityZones": [],
+    "subnetGroups": [
+      {
+        "name": "Isolated",
+        "type": "Isolated",
+        "subnets": [
+          {
+            "subnetId": "subnet-0bb2f750702848da4",
+            "cidr": "10.0.128.0/18",
+            "availabilityZone": "us-east-2a",
+            "routeTableId": "rtb-073ca344fbffd0f44"
+          },
+          {
+            "subnetId": "subnet-088581b0a163f051c",
+            "cidr": "10.0.192.0/18",
+            "availabilityZone": "us-east-2b",
+            "routeTableId": "rtb-0b9e84051346bfa39"
+          }
+        ]
+      },
+      {
+        "name": "Public",
+        "type": "Public",
+        "subnets": [
+          {
+            "subnetId": "subnet-056e91686c2e34ce8",
+            "cidr": "10.0.0.0/18",
+            "availabilityZone": "us-east-2a",
+            "routeTableId": "rtb-0141e20d6d7746a2d"
+          },
+          {
+            "subnetId": "subnet-0ea15c93ffe9a40bf",
+            "cidr": "10.0.64.0/18",
+            "availabilityZone": "us-east-2b",
+            "routeTableId": "rtb-06f4a9782599e1012"
+          }
+        ]
+      }
+    ]
   }
 }

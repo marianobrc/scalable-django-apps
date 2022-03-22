@@ -19,13 +19,22 @@ pipeline = MyDjangoAppPipelineStack(
         region=os.getenv('CDK_DEFAULT_REGION')
     ),
 )
-# run_cmd_in_staging = RunTaskStack(
+run_cmd_in_staging = RunTaskStack(
+    app,
+    "RunTaskInStaging",
+    env=Environment(
+        account=os.getenv('CDK_DEFAULT_ACCOUNT'),
+        region=os.getenv('CDK_DEFAULT_REGION')
+    ),
+    stage_name=pipeline.staging_env.stage_name
+)
+# run_cmd_in_production = RunTaskStack(
 #     app,
-#     "RunTaskInStaging",
+#     "RunTaskInProduction",
 #     env=Environment(
 #         account=os.getenv('CDK_DEFAULT_ACCOUNT'),
 #         region=os.getenv('CDK_DEFAULT_REGION')
 #     ),
-#     stage_name=pipeline.staging_env.stage_name
+#     stage_name=pipeline.production_env.stage_name
 # )
 app.synth()
