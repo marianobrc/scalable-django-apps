@@ -40,7 +40,7 @@ class StaticFilesStack(Stack):
         if self.cors_allowed_origins:
             response_headers_policy = cloudfront.ResponseHeadersPolicy(
                 self, "ResponseHeadersPolicy",
-                response_headers_policy_name=f"{self}CORSPolicy",
+                response_headers_policy_name=f"{scope.stage_name}CORSPolicy",
                 comment="CORS Policy",
                 cors_behavior=cloudfront.ResponseHeadersCorsBehavior(
                     access_control_allow_credentials=True,
