@@ -73,6 +73,7 @@ class StaticFilesStack(Stack):
                 response_headers_policy=response_headers_policy
             )
         )
+        # Save useful parameters to SSM Parameter Store
         self.static_files_bucket_name = ssm.StringParameter(
             self,
             "StaticFilesBucketNameParam",

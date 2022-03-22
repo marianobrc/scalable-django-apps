@@ -16,11 +16,11 @@ class QueuesStack(Stack):
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
         # Create a SQS queue
-
         self.default_queue = sqs.Queue(
             self,
             "SQSQueue"
         )
+        # Save the queue url in SSM Parameter Store
         self.celery_broker_url = ssm.StringParameter(
             self,
             "CeleryBrokerUrlParam",

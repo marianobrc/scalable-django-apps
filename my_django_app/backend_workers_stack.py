@@ -51,7 +51,7 @@ class BackendWorkersStack(Stack):
         if not self.ecs_cluster:
             self.ecs_cluster = ecs.Cluster(self, f"WorkersCluster", vpc=vpc)
 
-        # Prepare environment variables
+        # Instantiate the worker
         self.container_name = f"celery_worker"
         self.workers_fargate_service = ecs_patterns.QueueProcessingFargateService(
             self,

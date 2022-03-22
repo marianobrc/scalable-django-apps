@@ -19,6 +19,8 @@ class VariablesStack(Stack):
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
+        # Secret values required by the app which are store in the Secrets Manager
+        # This values will be injected as env vars on runtime
         self.app_secrets = {
             "DJANGO_SECRET_KEY": ecs.Secret.from_secrets_manager(
                 secretsmanager.Secret.from_secret_name_v2(
@@ -62,9 +64,11 @@ class VariablesStack(Stack):
                 )
             ),
         }
+        # Retrieve the arn of the TLS certificate from SSM Parameter Store
         self.certificate_arn = ssm.StringParameter.value_for_string_parameter(
             self, "/mydjangoapp/certificatearn"
         )
+        # Instantiate the certificate which will be required by the load balancer later
         self.domain_certificate = acm.Certificate.from_certificate_arn(
             self, f"DomainCertificate",
             certificate_arn=self.certificate_arn
