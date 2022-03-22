@@ -5,10 +5,10 @@ from aws_cdk import (
     Environment,
 )
 from my_django_app.pipeline_stack import MyDjangoAppPipelineStack
-
+from my_django_app.run_task_stack import RunTaskStack
 
 app = cdk.App()
-MyDjangoAppPipelineStack(
+pipeline = MyDjangoAppPipelineStack(
     app,
     "MyDjangoAppPipeline",
     repository="marianobrc/scalable-django-apps",
@@ -19,4 +19,13 @@ MyDjangoAppPipelineStack(
         region=os.getenv('CDK_DEFAULT_REGION')
     ),
 )
+# run_cmd_in_staging = RunTaskStack(
+#     app,
+#     "RunTaskInStaging",
+#     env=Environment(
+#         account=os.getenv('CDK_DEFAULT_ACCOUNT'),
+#         region=os.getenv('CDK_DEFAULT_REGION')
+#     ),
+#     stage_name=pipeline.staging_env.stage_name
+# )
 app.synth()

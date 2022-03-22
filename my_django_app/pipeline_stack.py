@@ -40,12 +40,12 @@ class MyDjangoAppPipelineStack(Stack):
                 commands=[
                     "npm install -g aws-cdk",  # Installs the cdk cli on Codebuild
                     "pip install -r requirements.txt",  # Instructs Codebuild to install required packages
-                    "npx cdk synth",
+                    "npx cdk synth MyDjangoAppPipeline",
                 ]
             ),
         )
         # Deploy to a staging environment
-        deploy_staging = MyDjangoAppPipelineStage(
+        self.staging_env = MyDjangoAppPipelineStage(
             self, "MyDjangoAppStaging",
             django_settings_module="app.settings.stage",
             django_debug=True,
@@ -64,16 +64,16 @@ class MyDjangoAppPipelineStack(Stack):
                 {"lower": 10, "change": +1},  # 10 msgs = 2 workers
             ]
         )
-        pipeline.add_stage(deploy_staging)
+        pipeline.add_stage(self.staging_env)
         # Deploy to production after manual approval
-        deploy_production = MyDjangoAppPipelineStage(
+        self.production_env = MyDjangoAppPipelineStage(
             self, "MyDjangoAppProduction",
             django_settings_module="app.settings.prod",
             django_debug=False,
             domain_name="scalabledjango.com"
         )
         pipeline.add_stage(
-            deploy_production,
+            self.production_env,
             pre=[
                 pipelines.ManualApprovalStep("PromoteToProduction")
             ]

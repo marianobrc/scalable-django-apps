@@ -1,11 +1,13 @@
 from aws_cdk import (
     Stack,
+    CfnOutput,
     aws_ec2 as ec2,
     aws_sqs as sqs,
     aws_ecs as ecs,
     aws_ecs_patterns as ecs_patterns,
     aws_certificatemanager as acm,
-    aws_elasticloadbalancingv2 as elbv2
+    aws_elasticloadbalancingv2 as elbv2,
+    aws_ssm as ssm
 )
 from constructs import Construct
 
@@ -86,4 +88,28 @@ class MyDjangoAppStack(Stack):
             f"CpuScaling",
             target_utilization_percent=75,
         )
-
+        # Export useful values
+        ecr_image_name = self.alb_fargate_service.task_definition.find_container(self.container_name).image_name
+        CfnOutput(
+            self,
+            f"{scope.stage_name}-EcsClusterName",
+            value=self.ecs_cluster.cluster_name
+        )
+        CfnOutput(
+            self,
+            f"{scope.stage_name}-EcrImageName",
+            value=ecr_image_name
+        )
+        # Save them in SSM
+        ssm.StringParameter(
+            self,
+            "EcsClusterNameParam",
+            parameter_name=f"/{scope.stage_name}/EcsClusterName",
+            string_value=self.ecs_cluster.cluster_name
+        )
+        ssm.StringParameter(
+            self,
+            "EcrImageNameParam",
+            parameter_name=f"/{scope.stage_name}/EcrImageName",
+            string_value=ecr_image_name
+        )

@@ -1,7 +1,8 @@
 from aws_cdk import (
-    # Duration,
     Stack,
+    CfnOutput,
     aws_ec2 as ec2,
+    aws_ssm as ssm
 )
 from constructs import Construct
 
@@ -66,4 +67,17 @@ class NetworkStack(Stack):
             service=ec2.InterfaceVpcEndpointAwsService.SQS,
             open=True,
             private_dns_enabled=True
+        )
+        # Export the VPC ID
+        CfnOutput(
+            self,
+            f"{scope.stage_name}-VpcId",
+            value=self.vpc.vpc_id
+        )
+        # Save them as SSM parameters too
+        ssm.StringParameter(
+            self,
+            "VpcIdParam",
+            parameter_name=f"/{scope.stage_name}/VpcId",
+            string_value=self.vpc.vpc_id
         )

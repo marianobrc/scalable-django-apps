@@ -51,7 +51,7 @@ class MyDjangoAppPipelineStage(Stage):
         self.worker_task_max_scaling_capacity = worker_task_max_scaling_capacity
         self.worker_scaling_steps = worker_scaling_steps
 
-        network = NetworkStack(
+        self.network = NetworkStack(
             self,
             "Network",
             env=Environment(
@@ -59,21 +59,21 @@ class MyDjangoAppPipelineStage(Stage):
                 region=os.getenv('CDK_DEFAULT_REGION')
             ),
         )
-        database = DatabaseStack(
+        self.database = DatabaseStack(
             self,
             "Database",
             env=Environment(
                 account=os.getenv('CDK_DEFAULT_ACCOUNT'),
                 region=os.getenv('CDK_DEFAULT_REGION')
             ),
-            vpc=network.vpc,
+            vpc=self.network.vpc,
             database_name="app_db",
             min_capacity=self.db_min_capacity,
             max_capacity=self.db_max_capacity,
             auto_pause_minutes=self.db_auto_pause_minutes
         )
         # Serve static files for the Backoffice (django-admin)
-        static_files = StaticFilesStack(
+        self.static_files = StaticFilesStack(
             self,
             "StaticFiles",
             env=Environment(
@@ -84,7 +84,7 @@ class MyDjangoAppPipelineStage(Stage):
                 f"https://{self.subdomain}.{self.domain_name}" if self.subdomain else f"https://{self.domain_name}"
             ]
         )
-        queues = QueuesStack(
+        self.queues = QueuesStack(
             self,
             "Queues",
             env=Environment(
@@ -92,39 +92,39 @@ class MyDjangoAppPipelineStage(Stage):
                 region=os.getenv('CDK_DEFAULT_REGION')
             ),
         )
-        app_env_vars = {
+        self.app_env_vars = {
             "DJANGO_SETTINGS_MODULE": self.django_settings_module,
             "DJANGO_DEBUG": str(self.django_debug),
             # Workaround to use VPC endpoints with SQS in Django
             # https://github.com/boto/boto3/issues/1900#issuecomment-873597264
             "AWS_DATA_PATH": "/home/web/botocore/",
             "AWS_ACCOUNT_ID": os.getenv('CDK_DEFAULT_ACCOUNT'),
-            "AWS_STATIC_FILES_BUCKET_NAME":  static_files.s3_bucket.bucket_name,
-            "AWS_STATIC_FILES_CLOUDFRONT_URL": static_files.cloudfront_distro.distribution_domain_name,
-            "CELERY_BROKER_URL": queues.default_queue.queue_url,
+            "AWS_STATIC_FILES_BUCKET_NAME":  self.static_files.s3_bucket.bucket_name,
+            "AWS_STATIC_FILES_CLOUDFRONT_URL": self.static_files.cloudfront_distro.distribution_domain_name,
+            "CELERY_BROKER_URL": self.queues.default_queue.queue_url,
             "CELERY_TASK_ALWAYS_EAGER": "False"
         }
-        variables = VariablesStack(
+        self.variables = VariablesStack(
             self,
             "AppVariables",
             env=Environment(
                 account=os.getenv('CDK_DEFAULT_ACCOUNT'),
                 region=os.getenv('CDK_DEFAULT_REGION')
             ),
-            database_secrets=database.aurora_serverless_db.secret,
+            database_secrets=self.database.aurora_serverless_db.secret,
         )
-        django_app = MyDjangoAppStack(
+        self.django_app = MyDjangoAppStack(
             self,
             "AppService",
             env=Environment(
                 account=os.getenv('CDK_DEFAULT_ACCOUNT'),
                 region=os.getenv('CDK_DEFAULT_REGION')
             ),
-            vpc=network.vpc,
-            queue=queues.default_queue,
-            domain_certificate=variables.domain_certificate,
-            env_vars=app_env_vars,
-            secrets=variables.app_secrets,
+            vpc=self.network.vpc,
+            queue=self.queues.default_queue,
+            domain_certificate=self.variables.domain_certificate,
+            env_vars=self.app_env_vars,
+            secrets=self.variables.app_secrets,
             task_cpu=256,
             task_memory_mib=512,
             task_desired_count=self.app_task_min_scaling_capacity,
@@ -132,7 +132,9 @@ class MyDjangoAppPipelineStage(Stage):
             task_max_scaling_capacity=self.app_task_max_scaling_capacity,
         )
         # Grant permissions to the app to put messages in hte queue
-        queues.default_queue.grant_send_messages(django_app.alb_fargate_service.service.task_definition.task_role)
+        self.queues.default_queue.grant_send_messages(
+            self.django_app.alb_fargate_service.service.task_definition.task_role
+        )
         workers = BackendWorkersStack(
             self,
             "Workers",
@@ -140,11 +142,11 @@ class MyDjangoAppPipelineStage(Stage):
                 account=os.getenv('CDK_DEFAULT_ACCOUNT'),
                 region=os.getenv('CDK_DEFAULT_REGION')
             ),
-            vpc=network.vpc,
-            ecs_cluster=django_app.ecs_cluster,
-            queue=queues.default_queue,
-            env_vars=app_env_vars,
-            secrets=variables.app_secrets,
+            vpc=self.network.vpc,
+            ecs_cluster=self.django_app.ecs_cluster,
+            queue=self.queues.default_queue,
+            env_vars=self.app_env_vars,
+            secrets=self.variables.app_secrets,
             task_cpu=256,
             task_memory_mib=512,
             task_min_scaling_capacity=self.worker_task_min_scaling_capacity,
@@ -161,5 +163,5 @@ class MyDjangoAppPipelineStage(Stage):
             ),
             domain_name=self.domain_name,
             subdomain=self.subdomain,
-            alb=django_app.alb_fargate_service.load_balancer,
+            alb=self.django_app.alb_fargate_service.load_balancer,
         )
