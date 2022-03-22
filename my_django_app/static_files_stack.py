@@ -5,6 +5,7 @@ from aws_cdk import (
     aws_s3 as s3,
     aws_cloudfront as cloudfront,
     aws_cloudfront_origins as origins,
+    aws_ssm as ssm
 )
 from constructs import Construct
 
@@ -71,4 +72,16 @@ class StaticFilesStack(Stack):
                 ),
                 response_headers_policy=response_headers_policy
             )
+        )
+        self.static_files_bucket_name = ssm.StringParameter(
+            self,
+            "StaticFilesBucketNameParam",
+            parameter_name=f"/{scope.stage_name}/StaticFilesBucketNameParam",
+            string_value=self.s3_bucket.bucket_name
+        )
+        self.static_files_cloudfront_url = ssm.StringParameter(
+            self,
+            "StaticFilesCloudFrontUrlParam",
+            parameter_name=f"/{scope.stage_name}/StaticFilesCloudFrontUrlParam",
+            string_value=self.cloudfront_distro.distribution_domain_name
         )

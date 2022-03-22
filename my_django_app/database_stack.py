@@ -56,7 +56,7 @@ class DatabaseStack(Stack):
         self.aurora_serverless_db.connections.allow_default_port_from_any_ipv4(
             description="Services in private subnets can access the DB"
         )
-        self.task_role_arn_param = ssm.StringParameter(
+        self.ssm_db_secret_name_param = ssm.StringParameter(
             self,
             "DatabaseSecretNameParam",
             parameter_name=f"/{scope.stage_name}/DatabaseSecretNameParam",
