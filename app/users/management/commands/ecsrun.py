@@ -46,7 +46,7 @@ aws_ssm_parameters = [
 ]
 
 
-def _build_execution_cofig(env_name):
+def _build_execution_cofig(env_name, extra_env_vars=None):
     # Get the parameters stored in SSM
     config = {}
 
@@ -177,6 +177,16 @@ def _build_execution_cofig(env_name):
             "value": settings.AWS_SECRET_ACCESS_KEY
         }
     )
+    # Add extra env vars if any
+    if extra_env_vars:
+        for var in extra_env_vars:
+            name, value = var.split('=', maxsplit=1)
+            config["environment"].append(
+                {
+                    "name": name,
+                    "value": value
+                }
+            )
     return config
 
 
@@ -219,22 +229,30 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
+            "command",
+            type=str,
+            nargs=1
+        )
+        parser.add_argument(
             "--env",
             dest="env_name",
             help="The environment where the command will be run: MyDjangoAppStaging or MyDjangoAppProduction.",
             required=True
         )
         parser.add_argument(
-            "command",
-            type=str,
-            nargs=1
+            "--env-var",
+            dest="env_vars",
+            help="Set extra env vars as --env-var NAME1=VALUE1 --env-var NAME2=VALUE2",
+            action='append',  # Make a list witht he multiple env vars
+            required=False
         )
 
     def handle(self, *args, **options):
         env_name = options["env_name"]
         docker_cmd = options["command"][0]
+        env_vars = options.get("env_vars")
         print(f"Building execution config for {env_name}")
-        config = _build_execution_cofig(env_name=env_name)
+        config = _build_execution_cofig(env_name=env_name, extra_env_vars=env_vars)
         print(f"Config loaded:\n{config}")
         print(f"Starting task in ECS with command:\n{docker_cmd}")
         aws_response = run_task_in_fargate(docker_cmd=docker_cmd, config=config)
