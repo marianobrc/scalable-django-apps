@@ -119,17 +119,3 @@ class MyDjangoAppStack(Stack):
             parameter_name=f"/{scope.stage_name}/TaskRoleArnParam",
             string_value=self.alb_fargate_service.task_definition.task_role.role_arn
         )
-
-        # self.task_subnets = ssm.StringListParameter(
-        #     self,
-        #     "TaskSubnetsParam",
-        #     parameter_name=f"/{scope.stage_name}/TaskSubnetsParam",
-        #     string_list_value=",".join(
-        #         [
-        #             str(s)
-        #             for s in vpc.select_subnets(subnet_type=ec2.SubnetType.PRIVATE_ISOLATED)
-        #         ]
-        #     )
-        # )
-
-
