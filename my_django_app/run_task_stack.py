@@ -34,9 +34,9 @@ class RunTaskStack(Stack):
             self,
             parameter_name=f"/{stage_name}/VpcId"
         )
-        ecr_image_name = ssm.StringParameter.value_from_lookup(
+        ecr_repo_name = ssm.StringParameter.value_from_lookup(
             self,
-            parameter_name=f"/{stage_name}/EcrImageName"
+            parameter_name=f"/{stage_name}/EcrRepoName"
         )
         ecs_cluster_name = ssm.StringParameter.value_from_lookup(
             self,
@@ -63,7 +63,7 @@ class RunTaskStack(Stack):
                 repository=ecr.Repository.from_repository_name(
                     self,
                     f"{stage_name}RunTaskImage",
-                    repository_name=ecr_image_name
+                    repository_name=ecr_repo_name
                 )
             ),
             command=self.command_parameter.value_as_string.split(),
@@ -73,7 +73,7 @@ class RunTaskStack(Stack):
         )
 
         # Trigger the task in 5 minutes from now
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
         rule = events.Rule(
             self, "Rule",
             schedule=events.Schedule.cron(
@@ -82,13 +82,16 @@ class RunTaskStack(Stack):
                 minute=str(now.minute + 5),
                 month=str(now.month),
                 year=str(now.year),
-            )
+            ),
+            targets=[
+                targets.EcsTask(
+                    cluster=self.ecs_cluster,
+                    subnet_selection=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_ISOLATED),
+                    task_definition=self.task_definition,
+                    task_count=1,
+                )
+            ]
         )
         # Run a standalone task in ECS, with the given command
-        rule.add_target(targets.EcsTask(
-            cluster=self.ecs_cluster,
-            subnet_selection=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_ISOLATED),
-            task_definition=self.task_definition,
-            task_count=1,
-        ))
+        rule.add_target()
 
