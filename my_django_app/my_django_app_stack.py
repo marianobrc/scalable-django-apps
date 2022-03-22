@@ -105,7 +105,7 @@ class MyDjangoAppStack(Stack):
             self,
             "TaskDefFamilyParam",
             parameter_name=f"/{scope.stage_name}/TaskDefFamilyParam",
-            string_value=self.alb_fargate_service.task_definition.family
+            string_value=f"family:{self.alb_fargate_service.task_definition.family}"
         )
         self.exec_role_arn_param = ssm.StringParameter(
             self,
@@ -119,6 +119,7 @@ class MyDjangoAppStack(Stack):
             parameter_name=f"/{scope.stage_name}/TaskRoleArnParam",
             string_value=self.alb_fargate_service.task_definition.task_role.role_arn
         )
+
         # self.task_subnets = ssm.StringListParameter(
         #     self,
         #     "TaskSubnetsParam",

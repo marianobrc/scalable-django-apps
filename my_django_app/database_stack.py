@@ -2,7 +2,8 @@ from aws_cdk import (
     Duration,
     Stack,
     aws_rds as rds,
-    aws_ec2 as ec2
+    aws_ec2 as ec2,
+    aws_ssm as ssm
 )
 from constructs import Construct
 
@@ -54,4 +55,10 @@ class DatabaseStack(Stack):
         # Allow ingress traffic from ECS tasks
         self.aurora_serverless_db.connections.allow_default_port_from_any_ipv4(
             description="Services in private subnets can access the DB"
+        )
+        self.task_role_arn_param = ssm.StringParameter(
+            self,
+            "DatabaseSecretNameParam",
+            parameter_name=f"/{scope.stage_name}/DatabaseSecretNameParam",
+            string_value=self.aurora_serverless_db.secret.secret_name
         )
