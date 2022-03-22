@@ -90,6 +90,7 @@ class MyDjangoAppStack(Stack):
         )
         # Export useful values
         ecr_image_name = self.alb_fargate_service.task_definition.find_container(self.container_name).image_name
+        ecr_repo_name = ecr_image_name.split(":")[0]
         CfnOutput(
             self,
             f"{scope.stage_name}-EcsClusterName",
@@ -110,6 +111,6 @@ class MyDjangoAppStack(Stack):
         ssm.StringParameter(
             self,
             "EcrImageNameParam",
-            parameter_name=f"/{scope.stage_name}/EcrImageName",
-            string_value=ecr_image_name
+            parameter_name=f"/{scope.stage_name}/EcrRepoName",
+            string_value=ecr_repo_name
         )
