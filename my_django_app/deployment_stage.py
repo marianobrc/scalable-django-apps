@@ -106,7 +106,7 @@ class MyDjangoAppPipelineStage(Stage):
         }
         self.variables = ExternalParametersStack(
             self,
-            "AppVariables",
+            "ExternalParameters",
             env=Environment(
                 account=os.getenv('CDK_DEFAULT_ACCOUNT'),
                 region=os.getenv('CDK_DEFAULT_REGION')
