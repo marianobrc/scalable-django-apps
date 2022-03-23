@@ -121,7 +121,7 @@ def _build_execution_cofig(env_name, extra_env_vars=None):
 
     # Retrieve secret values from secrets manager
     response = secrets_client.get_secret_value(
-        SecretId="/mydjangoapp/djangosecretkey/prod"
+        SecretId=f"/{env_name}/DjangoSecretKey"
     )
     config["environment"].append(
         {
