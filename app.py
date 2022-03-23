@@ -13,7 +13,7 @@ pipeline = MyDjangoAppPipelineStack(
     "MyDjangoAppPipeline",
     repository="marianobrc/scalable-django-apps",
     branch="master",
-    ssm_gh_connection_param="/github/connection",
+    ssm_gh_connection_param="/Github/Connection",
     env=Environment(
         account=os.getenv('CDK_DEFAULT_ACCOUNT'),
         region=os.getenv('CDK_DEFAULT_REGION')
