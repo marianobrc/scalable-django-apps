@@ -4,6 +4,7 @@ from aws_cdk import (
     Stack,
     pipelines as pipelines,
     aws_ssm as ssm,
+    aws_secretsmanager as secretsmanager,
     aws_rds as rds,
 )
 from .deployment_stage import MyDjangoAppPipelineStage
@@ -29,6 +30,15 @@ class MyDjangoAppPipelineStack(Stack):
         pipeline = pipelines.CodePipeline(
             self,
             "Pipeline",
+            docker_credentials=[
+                pipelines.DockerCredential.docker_hub(
+                    secretsmanager.Secret.from_secret_name_v2(
+                        self,
+                        "DockerHubSecret",
+                        secret_name="/MyDjangoAppPipeline/DockerHubSecret"
+                    )
+                ),
+            ],
             synth=pipelines.ShellStep(
                 "Synth",
                 input=pipelines.CodePipelineSource.connection(
