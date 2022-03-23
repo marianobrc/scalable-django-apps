@@ -8,13 +8,14 @@ from aws_cdk import (
 from constructs import Construct
 
 
-class VariablesStack(Stack):
+class ExternalParametersStack(Stack):
 
     def __init__(
             self,
             scope: Construct,
             construct_id: str,
             database_secrets: secretsmanager.ISecret,
+            name_prefix: str,  # Naming convention for parameters: i.e; /AppNameStageName/SecretName
             **kwargs
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -25,8 +26,8 @@ class VariablesStack(Stack):
             "DJANGO_SECRET_KEY": ecs.Secret.from_secrets_manager(
                 secretsmanager.Secret.from_secret_name_v2(
                     self,
-                    f"AWSDjangoKeySecret",
-                    secret_name="/mydjangoapp/djangosecretkey/prod"
+                    f"DjangoKeySecret",
+                    secret_name=f"{name_prefix}DjangoSecretKey"
                 )
             ),
             "DB_HOST": ecs.Secret.from_secrets_manager(
@@ -53,23 +54,23 @@ class VariablesStack(Stack):
                 secretsmanager.Secret.from_secret_name_v2(
                     self,
                     f"AWSAccessKeyIDSecret",
-                    secret_name="/mydjangoapp/awsapikeyid"
+                    secret_name=f"{name_prefix}AwsApiKeyId"
                 )
             ),
             "AWS_SECRET_ACCESS_KEY": ecs.Secret.from_secrets_manager(
                 secretsmanager.Secret.from_secret_name_v2(
                     self,
                     f"AWSAccessKeySecretSecret",
-                    secret_name="/mydjangoapp/awsapikeysecret",
+                    secret_name=f"{name_prefix}AwsApiKeySecret",
                 )
             ),
         }
         # Retrieve the arn of the TLS certificate from SSM Parameter Store
         self.certificate_arn = ssm.StringParameter.value_for_string_parameter(
-            self, "/mydjangoapp/certificatearn"
+            self, f"{name_prefix}CertificateArn"
         )
         # Instantiate the certificate which will be required by the load balancer later
         self.domain_certificate = acm.Certificate.from_certificate_arn(
-            self, f"DomainCertificate",
+            self, "DomainCertificate",
             certificate_arn=self.certificate_arn
         )
