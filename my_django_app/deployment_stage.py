@@ -101,7 +101,7 @@ class MyDjangoAppPipelineStage(Stage):
             "AWS_ACCOUNT_ID": os.getenv('CDK_DEFAULT_ACCOUNT'),
             "AWS_STATIC_FILES_BUCKET_NAME":  self.static_files.s3_bucket.bucket_name,
             "AWS_STATIC_FILES_CLOUDFRONT_URL": self.static_files.cloudfront_distro.distribution_domain_name,
-            "CELERY_BROKER_URL": self.queues.default_queue.queue_url,
+            "SQS_DEFAULT_QUEUE_URL": self.queues.default_queue.queue_url,
             "CELERY_TASK_ALWAYS_EAGER": "False"
         }
         self.variables = ExternalParametersStack(

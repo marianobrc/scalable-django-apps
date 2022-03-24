@@ -110,11 +110,11 @@ def _build_execution_cofig(env_name, extra_env_vars=None):
         }
     )
     response = ssm_client.get_parameter(
-        Name=f"/{env_name}/CeleryBrokerUrlParam"
+        Name=f"/{env_name}/SqsDefaultQueueUrlParam"
     )
     config["environment"].append(
         {
-            "name": "CELERY_BROKER_URL",
+            "name": "SQS_DEFAULT_QUEUE_URL",
             "value": response['Parameter']['Value']
         }
     )

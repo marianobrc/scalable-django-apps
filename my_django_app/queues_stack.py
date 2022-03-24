@@ -21,9 +21,9 @@ class QueuesStack(Stack):
             "SQSQueue"
         )
         # Save the queue url in SSM Parameter Store
-        self.celery_broker_url = ssm.StringParameter(
+        self.default_queue_url_param = ssm.StringParameter(
             self,
-            "CeleryBrokerUrlParam",
-            parameter_name=f"/{scope.stage_name}/CeleryBrokerUrlParam",
+            "SqsDefaultQueueUrlParam",
+            parameter_name=f"/{scope.stage_name}/SqsDefaultQueueUrlParam",
             string_value=self.default_queue.queue_url
         )
