@@ -58,10 +58,8 @@ RUN pip install --no-cache-dir -r requirements/prod.txt
 COPY --chown=web:web ./docker/app/start-prod-server.sh /usr/local/bin/start-prod-server.sh
 RUN chmod +x /usr/local/bin/start-prod-server.sh
 # Override SQS endpoint settings as a workaround to make celery to work with VPC endpoints
-#COPY --chown=web:web ./docker/aws_endpoints.json /home/web/botocore/endpoints.json
-#RUN cat /home/web/botocore/endpoints.json
-#RUN ls -alh /home/web/
-#RUN ls -alh /home/web/botocore/
+COPY --chown=web:web ./docker/aws_endpoints.json /home/web/botocore/endpoints.json
+RUN cat /home/web/botocore/endpoints.json | grep sqs
 USER web
 # Copy the source code of our django app to the working directoy
 COPY --chown=web:web . ./

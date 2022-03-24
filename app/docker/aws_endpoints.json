@@ -6388,7 +6388,9 @@
           "us-east-1" : {
             "sslCommonName" : "sqs.us-east-1.{dnsSuffix}"
           },
-          "us-east-2" : { },
+          "us-east-2" : {
+            "sslCommonName" : "sqs.us-east-2.{dnsSuffix}"
+          },
           "us-west-1" : { },
           "us-west-2" : { }
         }
