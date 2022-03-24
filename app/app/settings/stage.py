@@ -39,9 +39,7 @@ CELERY_BROKER_TRANSPORT_OPTIONS = {
     "polling_interval": 5,
     'predefined_queues': {  # We use an SQS queue created previously with CDK
         CELERY_TASK_DEFAULT_QUEUE: {
-            'url': SQS_DEFAULT_QUEUE_URL,  # Important: Set the queue URL with https:// here when using VPC endpoints
-            # 'access_key_id': AWS_ACCESS_KEY_ID,
-            # 'secret_access_key': AWS_SECRET_ACCESS_KEY,
+            'url': SQS_DEFAULT_QUEUE_URL  # Important: Set the queue URL with https:// here when using VPC endpoints
         }
     }
 }

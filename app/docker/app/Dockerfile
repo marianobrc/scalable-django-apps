@@ -57,8 +57,6 @@ RUN pip install --no-cache-dir -r requirements/prod.txt
 # Copy the script that starts the production application server (gunicorn)
 COPY --chown=web:web ./docker/app/start-prod-server.sh /usr/local/bin/start-prod-server.sh
 RUN chmod +x /usr/local/bin/start-prod-server.sh
-# Override SQS endpoint settings as a workaround to make celery to work with VPC endpoints
-#COPY --chown=web:web ./docker/aws_endpoints.json /home/web/botocore/endpoints.json
 USER web
 # Copy the source code of our django app to the working directoy
 COPY --chown=web:web . ./

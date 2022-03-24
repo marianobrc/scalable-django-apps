@@ -77,10 +77,6 @@ def _build_execution_cofig(env_name, extra_env_vars=None):
             "name": "DJANGO_DEBUG",
             "value": "True"
         },
-        # {
-        #     "name": "AWS_DATA_PATH",
-        #     "value": "/home/web/botocore/"
-        # },
         {
             "name": "AWS_ACCOUNT_ID",
             "value": settings.AWS_ACCOUNT_ID
