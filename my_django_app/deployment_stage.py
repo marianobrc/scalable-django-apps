@@ -1,5 +1,4 @@
 import os
-import typing
 from constructs import Construct
 from aws_cdk import (
     Stage,
