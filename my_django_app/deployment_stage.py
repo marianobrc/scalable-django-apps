@@ -20,7 +20,7 @@ class MyDjangoAppPipelineStage(Stage):
     def __init__(
             self,
             scope: Construct,
-            id: str,
+            construct_id: str,
             django_settings_module: str,
             django_debug: bool,
             domain_name: str,
@@ -36,7 +36,7 @@ class MyDjangoAppPipelineStage(Stage):
             **kwargs
     ):
 
-        super().__init__(scope, id, **kwargs)
+        super().__init__(scope, construct_id, **kwargs)
         self.django_settings_module = django_settings_module
         self.django_debug = django_debug
         self.domain_name = domain_name

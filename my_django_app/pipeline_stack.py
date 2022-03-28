@@ -13,13 +13,13 @@ class MyDjangoAppPipelineStack(Stack):
     def __init__(
             self,
             scope: Construct,
-            id: str,
+            construct_id: str,
             repository: str,
             branch: str,
             ssm_gh_connection_param: str,
             **kwargs
     ) -> None:
-        super().__init__(scope, id, **kwargs)
+        super().__init__(scope, construct_id, **kwargs)
         self.repository = repository
         self.branch = branch
         self.ssm_gh_connection_param = ssm_gh_connection_param
