@@ -68,12 +68,6 @@ class NetworkStack(Stack):
             open=True,
             private_dns_enabled=True
         )
-        # Export the VPC ID
-        CfnOutput(
-            self,
-            f"{scope.stage_name}-VpcId",
-            value=self.vpc.vpc_id
-        )
         # Save useful info in SSM for later usage
         ssm.StringParameter(
             self,
