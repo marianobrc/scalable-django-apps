@@ -95,9 +95,6 @@ class MyDjangoAppPipelineStage(Stage):
         self.app_env_vars = {
             "DJANGO_SETTINGS_MODULE": self.django_settings_module,
             "DJANGO_DEBUG": str(self.django_debug),
-            # Workaround to use VPC endpoints with SQS in Django
-            # https://github.com/boto/boto3/issues/1900#issuecomment-873597264
-            #"AWS_DATA_PATH": "/home/web/botocore/",
             "AWS_ACCOUNT_ID": os.getenv('CDK_DEFAULT_ACCOUNT'),
             "AWS_STATIC_FILES_BUCKET_NAME":  self.static_files.s3_bucket.bucket_name,
             "AWS_STATIC_FILES_CLOUDFRONT_URL": self.static_files.cloudfront_distro.distribution_domain_name,
