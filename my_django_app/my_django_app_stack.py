@@ -46,7 +46,7 @@ class MyDjangoAppStack(Stack):
         self.container_name = f"django_app"
         # Retrieve the arn of the TLS certificate from SSM Parameter Store
         self.certificate_arn = ssm.StringParameter.value_for_string_parameter(
-            self, f"{scope.stage_name}/CertificateArn"
+            self, f"/{scope.stage_name}/CertificateArn"
         )
         # Instantiate the certificate which will be required by the load balancer later
         self.domain_certificate = acm.Certificate.from_certificate_arn(
