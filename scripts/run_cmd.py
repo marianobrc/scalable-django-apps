@@ -1,28 +1,33 @@
 import os
 import json
 import boto3
-from django.core.management import BaseCommand
-from django.conf import settings
+import argparse
+
+
+AWS_ACCOUNT_ID = os.getenv("AWS_ACCOUNT_ID")
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+AWS_REGION_NAME = os.getenv("AWS_REGION_NAME")
 
 ecs_client = boto3.client(
     'ecs',
-    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-    region_name=settings.AWS_REGION_NAME,
+    aws_access_key_id=AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+    region_name=AWS_REGION_NAME,
 )
 
 ssm_client = boto3.client(
     'ssm',
-    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-    region_name=settings.AWS_REGION_NAME,
+    aws_access_key_id=AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+    region_name=AWS_REGION_NAME,
 )
 
 secrets_client = boto3.client(
     'secretsmanager',
-    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-    region_name=settings.AWS_REGION_NAME,
+    aws_access_key_id=AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+    region_name=AWS_REGION_NAME,
 )
 
 
@@ -79,7 +84,7 @@ def _build_execution_cofig(env_name, extra_env_vars=None):
         },
         {
             "name": "AWS_ACCOUNT_ID",
-            "value": settings.AWS_ACCOUNT_ID
+            "value": AWS_ACCOUNT_ID
         },
         {
             "name": "CELERY_TASK_ALWAYS_EAGER",
@@ -164,13 +169,13 @@ def _build_execution_cofig(env_name, extra_env_vars=None):
     config["environment"].append(
         {
             "name": "AWS_ACCESS_KEY_ID",
-            "value": settings.AWS_ACCESS_KEY_ID
+            "value": AWS_ACCESS_KEY_ID
         }
     )
     config["environment"].append(
         {
             "name": "AWS_SECRET_ACCESS_KEY",
-            "value": settings.AWS_SECRET_ACCESS_KEY
+            "value": AWS_SECRET_ACCESS_KEY
         }
     )
     # Add extra env vars if any
@@ -220,36 +225,40 @@ def run_task_in_fargate(docker_cmd, config):
     return aws_response
 
 
-class Command(BaseCommand):
-    help = "Runs a command inside a fargate task in ECS"
+def init_argparse() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Run a command as a fargate task in ecs, using the same container and settings used by the App"
+    )
+    parser.add_argument(
+        "command",
+        type=str,
+        #nargs=1
+    )
+    parser.add_argument(
+        "--env",
+        dest="env_name",
+        help="The environment where the command will be run: MyDjangoAppStaging or MyDjangoAppProduction.",
+        required=True
+    )
+    parser.add_argument(
+        "--env-var",
+        dest="env_vars",
+        help="Set extra env vars as --env-var NAME1=VALUE1 --env-var NAME2=VALUE2",
+        action='append',  # Make a list witht he multiple env vars
+        required=False
+    )
+    return parser
 
-    def add_arguments(self, parser):
-        parser.add_argument(
-            "command",
-            type=str,
-            nargs=1
-        )
-        parser.add_argument(
-            "--env",
-            dest="env_name",
-            help="The environment where the command will be run: MyDjangoAppStaging or MyDjangoAppProduction.",
-            required=True
-        )
-        parser.add_argument(
-            "--env-var",
-            dest="env_vars",
-            help="Set extra env vars as --env-var NAME1=VALUE1 --env-var NAME2=VALUE2",
-            action='append',  # Make a list witht he multiple env vars
-            required=False
-        )
 
-    def handle(self, *args, **options):
-        env_name = options["env_name"]
-        docker_cmd = options["command"][0]
-        env_vars = options.get("env_vars")
-        print(f"Building execution config for {env_name}")
-        config = _build_execution_cofig(env_name=env_name, extra_env_vars=env_vars)
-        print(f"Config loaded:\n{config}")
-        print(f"Starting task in ECS with command:\n{docker_cmd}")
-        aws_response = run_task_in_fargate(docker_cmd=docker_cmd, config=config)
-        print(f"AWS Response:\n{aws_response}")
+if __name__ == "__main__":
+    parser = init_argparse()
+    args = parser.parse_args()
+    env_name = args.env_name
+    docker_cmd = args.command
+    env_vars = args.env_vars
+    print(f"Building execution config for {env_name}")
+    config = _build_execution_cofig(env_name=env_name, extra_env_vars=env_vars)
+    print(f"Config loaded:\n{config}")
+    print(f"Starting task in ECS with command:\n{docker_cmd}")
+    aws_response = run_task_in_fargate(docker_cmd=docker_cmd, config=config)
+    print(f"AWS Response:\n{aws_response}")
