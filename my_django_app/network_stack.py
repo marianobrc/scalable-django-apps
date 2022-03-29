@@ -1,7 +1,8 @@
 from aws_cdk import (
     Stack,
     aws_ec2 as ec2,
-    aws_ssm as ssm
+    aws_ssm as ssm,
+    aws_ecs as ecs,
 )
 from constructs import Construct
 
@@ -20,6 +21,7 @@ class NetworkStack(Stack):
             enable_dns_hostnames=True,
             enable_dns_support=True
         )
+        self.ecs_cluster = ecs.Cluster(self, f"ECSCluster", vpc=self.vpc)
         # Add VPC endpoints to keep the traffic inside AWS
         self.s3_private_link = ec2.GatewayVpcEndpoint(
             self,

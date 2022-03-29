@@ -118,6 +118,7 @@ class MyDjangoAppPipelineStage(Stage):
                 region=os.getenv('CDK_DEFAULT_REGION')
             ),
             vpc=self.network.vpc,
+            ecs_cluster=self.network.ecs_cluster,
             queue=self.queues.default_queue,
             domain_certificate=self.variables.domain_certificate,
             env_vars=self.app_env_vars,
@@ -140,7 +141,7 @@ class MyDjangoAppPipelineStage(Stage):
                 region=os.getenv('CDK_DEFAULT_REGION')
             ),
             vpc=self.network.vpc,
-            ecs_cluster=self.django_app.ecs_cluster,
+            ecs_cluster=self.network.ecs_cluster,
             queue=self.queues.default_queue,
             env_vars=self.app_env_vars,
             secrets=self.variables.app_secrets,

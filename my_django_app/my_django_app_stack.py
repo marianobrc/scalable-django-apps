@@ -18,6 +18,7 @@ class MyDjangoAppStack(Stack):
             scope: Construct,
             construct_id: str,
             vpc: ec2.Vpc,
+            ecs_cluster: ecs.Cluster,
             queue: sqs.Queue,
             domain_certificate: acm.ICertificate,
             env_vars: dict,
@@ -32,6 +33,7 @@ class MyDjangoAppStack(Stack):
 
         super().__init__(scope, construct_id, **kwargs)
         self.vpc = vpc
+        self.ecs_cluster = ecs_cluster
         self.queue = queue
         self.domain_certificate = domain_certificate
         self.env_vars = env_vars
@@ -41,8 +43,6 @@ class MyDjangoAppStack(Stack):
         self.task_desired_count = task_desired_count
         self.task_min_scaling_capacity = task_min_scaling_capacity
         self.task_max_scaling_capacity = task_max_scaling_capacity
-
-        self.ecs_cluster = ecs.Cluster(self, f"ECSCluster", vpc=vpc)
 
         # Prepare environment variables
         self.container_name = f"django_app"
