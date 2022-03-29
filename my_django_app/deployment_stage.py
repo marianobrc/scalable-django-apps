@@ -11,7 +11,7 @@ from my_django_app.my_django_app_stack import MyDjangoAppStack
 from my_django_app.static_files_stack import StaticFilesStack
 from my_django_app.queues_stack import QueuesStack
 from my_django_app.backend_workers_stack import BackendWorkersStack
-from my_django_app.external_parameters_stack import ExternalParametersStack
+from my_django_app.external_secrets_stack import ExternalSecretsStack
 from my_django_app.dns_route_to_alb_stack import DnsRouteToAlbStack
 
 
@@ -100,7 +100,7 @@ class MyDjangoAppPipelineStage(Stage):
             "SQS_DEFAULT_QUEUE_URL": self.queues.default_queue.queue_url,
             "CELERY_TASK_ALWAYS_EAGER": "False"
         }
-        self.secrets = ExternalParametersStack(
+        self.secrets = ExternalSecretsStack(
             self,
             "ExternalParameters",
             env=Environment(

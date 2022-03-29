@@ -2,13 +2,11 @@ from aws_cdk import (
     Stack,
     aws_ecs as ecs,
     aws_secretsmanager as secretsmanager,
-    aws_ssm as ssm,
-    aws_certificatemanager as acm
 )
 from constructs import Construct
 
 
-class ExternalParametersStack(Stack):
+class ExternalSecretsStack(Stack):
 
     def __init__(
             self,
