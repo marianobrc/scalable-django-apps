@@ -65,12 +65,3 @@ class ExternalParametersStack(Stack):
                 )
             ),
         }
-        # Retrieve the arn of the TLS certificate from SSM Parameter Store
-        self.certificate_arn = ssm.StringParameter.value_for_string_parameter(
-            self, f"{name_prefix}CertificateArn"
-        )
-        # Instantiate the certificate which will be required by the load balancer later
-        self.domain_certificate = acm.Certificate.from_certificate_arn(
-            self, "DomainCertificate",
-            certificate_arn=self.certificate_arn
-        )

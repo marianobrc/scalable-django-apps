@@ -20,7 +20,6 @@ class MyDjangoAppStack(Stack):
             vpc: ec2.Vpc,
             ecs_cluster: ecs.Cluster,
             queue: sqs.Queue,
-            domain_certificate: acm.ICertificate,
             env_vars: dict,
             secrets: dict,
             task_cpu: int = 256,
@@ -35,7 +34,6 @@ class MyDjangoAppStack(Stack):
         self.vpc = vpc
         self.ecs_cluster = ecs_cluster
         self.queue = queue
-        self.domain_certificate = domain_certificate
         self.env_vars = env_vars
         self.secrets = secrets
         self.task_cpu = task_cpu
@@ -44,9 +42,17 @@ class MyDjangoAppStack(Stack):
         self.task_min_scaling_capacity = task_min_scaling_capacity
         self.task_max_scaling_capacity = task_max_scaling_capacity
 
-        # Prepare environment variables
+        # Prepare parameters
         self.container_name = f"django_app"
-
+        # Retrieve the arn of the TLS certificate from SSM Parameter Store
+        self.certificate_arn = ssm.StringParameter.value_for_string_parameter(
+            self, f"{scope.stage_name}CertificateArn"
+        )
+        # Instantiate the certificate which will be required by the load balancer later
+        self.domain_certificate = acm.Certificate.from_certificate_arn(
+            self, "DomainCertificate",
+            certificate_arn=self.certificate_arn
+        )
         # Create the load balancer, ECS service and fargate task for teh Django App
         self.alb_fargate_service = ecs_patterns.ApplicationLoadBalancedFargateService(
             self,

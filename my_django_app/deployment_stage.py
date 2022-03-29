@@ -100,7 +100,7 @@ class MyDjangoAppPipelineStage(Stage):
             "SQS_DEFAULT_QUEUE_URL": self.queues.default_queue.queue_url,
             "CELERY_TASK_ALWAYS_EAGER": "False"
         }
-        self.variables = ExternalParametersStack(
+        self.secrets = ExternalParametersStack(
             self,
             "ExternalParameters",
             env=Environment(
@@ -120,9 +120,8 @@ class MyDjangoAppPipelineStage(Stage):
             vpc=self.network.vpc,
             ecs_cluster=self.network.ecs_cluster,
             queue=self.queues.default_queue,
-            domain_certificate=self.variables.domain_certificate,
             env_vars=self.app_env_vars,
-            secrets=self.variables.app_secrets,
+            secrets=self.secrets.app_secrets,
             task_cpu=256,
             task_memory_mib=512,
             task_desired_count=self.app_task_min_scaling_capacity,
@@ -144,7 +143,7 @@ class MyDjangoAppPipelineStage(Stage):
             ecs_cluster=self.network.ecs_cluster,
             queue=self.queues.default_queue,
             env_vars=self.app_env_vars,
-            secrets=self.variables.app_secrets,
+            secrets=self.secrets.app_secrets,
             task_cpu=256,
             task_memory_mib=512,
             task_min_scaling_capacity=self.worker_task_min_scaling_capacity,
