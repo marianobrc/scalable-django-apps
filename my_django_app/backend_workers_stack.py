@@ -57,6 +57,7 @@ class BackendWorkersStack(Stack):
             queue=queue,
             platform_version=ecs.FargatePlatformVersion.VERSION1_4,
             cluster=self.ecs_cluster,  # Required
+            task_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_ISOLATED),
             cpu=task_cpu,  # Default is 256
             memory_limit_mib=task_memory_mib,  # Default is 512
             min_scaling_capacity=self.task_min_scaling_capacity,
