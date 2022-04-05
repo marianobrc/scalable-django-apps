@@ -49,22 +49,16 @@ class MyDjangoAppPipelineStage(Stage):
         self.worker_task_min_scaling_capacity = worker_task_min_scaling_capacity
         self.worker_task_max_scaling_capacity = worker_task_max_scaling_capacity
         self.worker_scaling_steps = worker_scaling_steps
-
+        aws_env = kwargs.get("env")
         self.network = NetworkStack(
             self,
             "Network",
-            env=Environment(
-                account=os.getenv('CDK_DEFAULT_ACCOUNT'),
-                region=os.getenv('CDK_DEFAULT_REGION')
-            ),
+            env=aws_env,  # AWS Account and Region
         )
         self.database = DatabaseStack(
             self,
             "Database",
-            env=Environment(
-                account=os.getenv('CDK_DEFAULT_ACCOUNT'),
-                region=os.getenv('CDK_DEFAULT_REGION')
-            ),
+            env=aws_env,  # AWS Account and Region
             vpc=self.network.vpc,
             database_name="app_db",
             min_capacity=self.db_min_capacity,
@@ -75,10 +69,7 @@ class MyDjangoAppPipelineStage(Stage):
         self.static_files = StaticFilesStack(
             self,
             "StaticFiles",
-            env=Environment(
-                account=os.getenv('CDK_DEFAULT_ACCOUNT'),
-                region=os.getenv('CDK_DEFAULT_REGION')
-            ),
+            env=aws_env,  # AWS Account and Region
             cors_allowed_origins=[
                 f"https://{self.subdomain}.{self.domain_name}" if self.subdomain else f"https://{self.domain_name}"
             ]
@@ -86,10 +77,7 @@ class MyDjangoAppPipelineStage(Stage):
         self.queues = QueuesStack(
             self,
             "Queues",
-            env=Environment(
-                account=os.getenv('CDK_DEFAULT_ACCOUNT'),
-                region=os.getenv('CDK_DEFAULT_REGION')
-            ),
+            env=aws_env,  # AWS Account and Region
         )
         self.app_env_vars = {
             "DJANGO_SETTINGS_MODULE": self.django_settings_module,
@@ -103,20 +91,14 @@ class MyDjangoAppPipelineStage(Stage):
         self.secrets = ExternalSecretsStack(
             self,
             "ExternalParameters",
-            env=Environment(
-                account=os.getenv('CDK_DEFAULT_ACCOUNT'),
-                region=os.getenv('CDK_DEFAULT_REGION')
-            ),
+            env=aws_env,  # AWS Account and Region
             name_prefix=f"/{self.stage_name}/",
             database_secrets=self.database.aurora_serverless_db.secret,
         )
         self.django_app = MyDjangoAppStack(
             self,
             "AppService",
-            env=Environment(
-                account=os.getenv('CDK_DEFAULT_ACCOUNT'),
-                region=os.getenv('CDK_DEFAULT_REGION')
-            ),
+            env=aws_env,  # AWS Account and Region
             vpc=self.network.vpc,
             ecs_cluster=self.network.ecs_cluster,
             queue=self.queues.default_queue,
@@ -132,13 +114,10 @@ class MyDjangoAppPipelineStage(Stage):
         self.queues.default_queue.grant_send_messages(
             self.django_app.alb_fargate_service.service.task_definition.task_role
         )
-        workers = BackendWorkersStack(
+        self.workers = BackendWorkersStack(
             self,
             "Workers",
-            env=Environment(
-                account=os.getenv('CDK_DEFAULT_ACCOUNT'),
-                region=os.getenv('CDK_DEFAULT_REGION')
-            ),
+            env=aws_env,  # AWS Account and Region
             vpc=self.network.vpc,
             ecs_cluster=self.network.ecs_cluster,
             queue=self.queues.default_queue,
@@ -151,13 +130,10 @@ class MyDjangoAppPipelineStage(Stage):
             scaling_steps=self.worker_scaling_steps
         )
         # Route requests made in the domain to the ALB
-        dns = DnsRouteToAlbStack(
+        self.dns = DnsRouteToAlbStack(
             self,
             "DnsToAlb",
-            env=Environment(
-                account=os.getenv('CDK_DEFAULT_ACCOUNT'),
-                region=os.getenv('CDK_DEFAULT_REGION')
-            ),
+            env=aws_env,  # AWS Account and Region
             domain_name=self.domain_name,
             subdomain=self.subdomain,
             alb=self.django_app.alb_fargate_service.load_balancer,

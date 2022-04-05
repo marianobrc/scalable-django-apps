@@ -26,6 +26,7 @@ class MyDjangoAppPipelineStack(Stack):
         self.gh_connection_arn = ssm.StringParameter.value_for_string_parameter(
             self, ssm_gh_connection_param
         )
+        aws_env = kwargs.get("env")
         pipeline = pipelines.CodePipeline(
             self,
             "Pipeline",
@@ -56,6 +57,7 @@ class MyDjangoAppPipelineStack(Stack):
         # Deploy to a staging environment
         self.staging_env = MyDjangoAppPipelineStage(
             self, "MyDjangoAppStaging",
+            env=aws_env,  # AWS Account and Region
             django_settings_module="app.settings.stage",
             django_debug=True,
             domain_name="scalabledjango.com",
@@ -77,6 +79,7 @@ class MyDjangoAppPipelineStack(Stack):
         # Deploy to production after manual approval
         self.production_env = MyDjangoAppPipelineStage(
             self, "MyDjangoAppProduction",
+            env=aws_env,  # AWS Account and Region
             django_settings_module="app.settings.prod",
             django_debug=False,
             domain_name="scalabledjango.com",
