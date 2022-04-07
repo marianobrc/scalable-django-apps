@@ -165,7 +165,7 @@ AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
 
 # Celery settings
 # Check celery good practices: https://denibertovic.com/posts/celery-best-practices/
-CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "sqs://user:password@broker:4566/0")
 # Pass only json serializable arguments to tasks
 CELERY_TASK_SERIALIZER = "json"
 # We ignore the celery task "result" as we don't need it.
@@ -173,12 +173,17 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_TASK_IGNORE_RESULT = True
 # Queues and routes for celery tasks
 CELERY_TASK_DEFAULT_QUEUE = "default"
+SQS_DEFAULT_QUEUE_URL = f"http://broker:4566/000000000000/{CELERY_TASK_DEFAULT_QUEUE}"
 CELERY_BROKER_TRANSPORT = "sqs"
 CELERY_BROKER_TRANSPORT_OPTIONS = {
     "region": AWS_REGION_NAME,
     "visibility_timeout": 3600,
     "polling_interval": 5,
-    "queue_name_prefix": "dev"
+    'predefined_queues': {  # We use an SQS queue created previously with CDK
+        CELERY_TASK_DEFAULT_QUEUE: {
+            'url': SQS_DEFAULT_QUEUE_URL  # Important: Set the queue URL with https:// here when using VPC endpoints
+        }
+    }
 }
 # This setting makes the tasks to run synchronously. Useful for local debugging and CI tests.
 CELERY_TASK_ALWAYS_EAGER = strtobool(os.getenv("CELERY_TASK_ALWAYS_EAGER", "False"))
