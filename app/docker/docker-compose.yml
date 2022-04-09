@@ -42,21 +42,12 @@ services:
       - 8000:8000
 
   broker:
-    image: localstack/localstack
+    image: softwaremill/elasticmq-native
     ports:
-      - 4566:4566
-      - 4571:4571
-      - 8181:${PORT_WEB_UI-8080}
-    environment:
-      - SERVICES=sqs
-      - AWS_REGION_NAME=${AWS_REGION_NAME}
-      - DEBUG=1
-      - DATA_DIR=/tmp/localstack/data
-      - HOSTNAME=broker
-      - HOSTNAME_EXTERNAL=broker
+      - 9324:9324
+      - 9325:9325
     volumes:
-      - localstack_data:/tmp/localstack
-      - ./broker:/docker-entrypoint-initaws.d/
+      - ./broker/custom.conf:/opt/elasticmq.conf
     restart: always
 
   worker-default:
@@ -72,4 +63,3 @@ services:
 
 volumes:
   postgres_data:
-  localstack_data:
