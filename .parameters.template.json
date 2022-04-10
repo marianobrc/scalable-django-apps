@@ -1,4 +1,5 @@
 {
-  "/github/connection": "arn:aws:codestar-connections:us-east-2:111111111111:connection/1ae38fa9-21b5-4a7d-91a0-c653a6e1fd05",
-  "/mydjangoapp/certificatearn": "arn:aws:acm:us-east-1:111111111111:certificate/1cdd512b-fc00-4c62-9e93-123c658f4e1b"
+  "/Github/Connection": "arn:aws:codestar-connections:us-east-2:111111111111:connection/1ae38fa9-21b5-4a7d-91a0-c653a6e1fd05",
+  "/MyDjangoAppStaging/CertificateArn": "arn:aws:acm:us-east-1:111111111111:certificate/1cdd512b-fc00-4c62-9e93-123c658f4e1b",
+  "/MyDjangoAppProduction/CertificateArn": "arn:aws:acm:us-east-1:111111111111:certificate/1cdd512b-fc00-4c62-9e93-123c658f4e1b"
 }

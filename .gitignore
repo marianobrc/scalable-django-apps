@@ -18,6 +18,7 @@ cdk.out
 
 # Local Secrets and Parameters
 .secrets.json
+.dockerhub_creds.json
 .parameters.json
 
 # log files

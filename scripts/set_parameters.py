@@ -54,11 +54,11 @@ if __name__ == "__main__":
             if args.is_secret:  # Secret in secrets manager
                 command.extend(["secretsmanager", "create-secret", "--name", key, "--secret-string", value])
                 if args.is_overwrite:
-                    command.extend(["--force-overwrite-replica-secret"])
+                    command.append("--force-overwrite-replica-secret")
             else:  # Regular parameter in SSM
                 command.extend(["ssm", "put-parameter", "--name", key, "--value", value, "--type", "String"])
                 if args.is_overwrite:
-                    command.extend(["--overwrite"])
+                    command.append("--overwrite")
                 elif args.tags:
                     command.extend(["--tags", args.tags])
             print(command)
