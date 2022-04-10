@@ -1,61 +1,94 @@
-# scalable-django-apps
-An example of scalable django apps in AWS with Docker and CDK.
+# Scalable Django Apps
+A sample project for auto-scalable Django apps, ready to be deployed in AWS with Docker and CDK.
 
-# Welcome to your CDK Python project!
+## The Architecture Features
+* A load-balanced, highly-available, auto-scalable Django app running in Amazon ECS+Fargate (a.k.a Serverless Containers).
+* Fully-managed Queues and auto-scalable Workers using Amazon SQS and Celery Workers running in Amazon ECS+Fargate.
+* A fully-managed serverless database using Amazon Aurora Serverless.
+* Static files stored in a private S3 bucket and served through CloudFront.
+* Private Isolated subnets and VPC Endpoints are used for improved security and performance, also allowing to remove NAT GWs.
+* Sensitive data such as API KEYs or Passwords are stored in AWS Secrets Manager. Other parameters are stored in AWS SSM Parameter Store.
 
-This is a blank project for Python development with CDK.
+## DevOps
+* IaC support using CDK v2
+* CI/CD using CDK Pipelines
+* Docker support for local development with `docker-compose`.
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+# The Repository Structure
 
-This project is set up like a standard Python project.  The initialization
-process also creates a virtualenv within this project, stored under the `.venv`
-directory.  To create the virtualenv it assumes that there is a `python3`
-(or `python` for Windows) executable in your path with access to the `venv`
-package. If for any reason the automatic creation of the virtualenv fails,
-you can create the virtualenv manually.
+At the root of this repository you will find a CDK (v2) project. 
 
-To manually create a virtualenv on MacOS and Linux:
+You will find the Django project and more details about how to set up the development environment is inside the `app/` directory.
 
-```
-$ python3 -m venv .venv
-```
+## CDK
 
-After the init process completes and the virtualenv is created, you can use the following
-step to activate your virtualenv.
+The entrypoint for the CDK project is app.py.
+Other Stacks and stages are defined in `my_django_app/`.
 
-```
+## Prerequisites to work with CDK
+- Install the aws client v2:
+  
+  https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-mac.html
+  
+- Setup API Keys of an administrator user and set the region running:
+  
+    `aws configure`
+
+  CDK requires API KEYs with enough permissions to create and destroy resources in your AWS Account. Hence, it's recommended to create a user with `Administrator` role.
+ 
+- Install the cdk client:
+  
+    `npm install -g aws-cdk`
+
+### Working with CDK
+To work with CDK first activate the virtualenv located at `.venv` and install dependencies.
+
+```shell
 $ source .venv/bin/activate
+(.venv) $ pip install -r requirements.txt
+(.venv) $ pip install -r requirements-dev.txt
 ```
 
-If you are a Windows platform, you would activate the virtualenv like this:
 
-```
-% .venv\Scripts\activate.bat
-```
+### Bootstrapping
+The usage of CDK Pipelines require an extra command, [cdk bootstrap](https://docs.aws.amazon.com/cdk/latest/guide/cli.html#cli-bootstrap), to provision resources used by CDK during the deploy.
+This command needs to be executed once per account/region combination as: `cdk bootstrap ACCOUNT-NUMBER/REGION`.
 
-Once the virtualenv is activated, you can install the required dependencies.
-
-```
-$ pip install -r requirements.txt
-```
-
-At this point you can now synthesize the CloudFormation template for this code.
-
-```
-$ cdk synth
+```shell
+$ cdk bootstrap aws://123456789123/us-east-2
+ ⏳  Bootstrapping environment aws://123456789123/us-east-2...
+...
+ ✅  Environment aws://123456789123/us-east-2 bootstrapped
 ```
 
-To add additional dependencies, for example other CDK libraries, just add
-them to your `setup.py` file and rerun the `pip install -r requirements.txt`
-command.
+### Deploying to AWS
+#### Set up CDK env vars
+Set the following env vars:
+```shell
+CDK_DEFAULT_ACCOUNT=111111111111
+CDK_DEFAULT_REGION=us-east-1
+```
 
-## Useful commands
+Set the following secrets and parameters in the AWS Console
+#### Secrets
+```shell
+>>>>>>>>>>>>>>>>>>ToDo
+```
+#### Parameters
+```shell
+>>>>>>>>>>>>>>>>>>ToDo
+```
+#### Deploying
+Now you can deploy de CI/CD Pipeline:
+```shell
+$ cdk deploy MyDjangoAppPipeline
+```
+CDK will ask for confirmation before creating roles, policies and security groups. Enter 'y' for yes and the deployment process will start.You will see the deployment progress in your shell and once finished you will see the pipeline in the CodePipeline panel at the AWS Console.
 
- * `cdk ls`          list all stacks in the app
- * `cdk synth`       emits the synthesized CloudFormation template
- * `cdk deploy`      deploy this stack to your default AWS account/region
- * `cdk diff`        compare deployed stack with current state
- * `cdk docs`        open CDK documentation
+After the pipeline is deployed it will be triggered and all the stacks will be created. You can monitor the stacks creation in the CloudFormation panel at  the AWS Console.
+
+This is the only time you need to run the deploy command. The next time you commit any changes in the infrastructure code, or the app code, the pipepile will update the infrastructure and will update the ecs services as needed.
+
 
 Enjoy!
 =======
