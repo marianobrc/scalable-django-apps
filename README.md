@@ -106,6 +106,8 @@ Finished.
 ```
 
 #### Deploying
+IMPORTANT: Before deploying the pipeline you need to set the secrets and parameters described above with your own values. You also need to set your own domain and SSL certificate.
+
 Now you can deploy de CI/CD Pipeline:
 ```shell
 $ cdk deploy MyDjangoAppPipeline
@@ -116,6 +118,10 @@ After the pipeline is deployed it will be triggered and all the stacks will be c
 
 This is the only time you need to run the deploy command. The next time you commit any changes in the infrastructure code, or the app code, the pipepile will update the infrastructure and will update the ecs services as needed.
 
+# License
+You are free to use, copy or distribute this code. Knowledge is meant to be shared :)
+
+THIS SOFTWARE COMES WITH NO WARRANTIES, USE AT YOUR OWN RISK
 
 Enjoy!
 =======
